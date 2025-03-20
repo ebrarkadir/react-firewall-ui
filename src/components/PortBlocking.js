@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
+import { sendPortBlockingRules } from "../api"; // API çağrısı için import
 
 const PortBlocking = () => {
   const [rules, setRules] = useState([]);
@@ -60,23 +61,13 @@ const PortBlocking = () => {
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      const response = await fetch("http://openwrt-ip/api/portblocking/rules", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ rules }),
-      });
-
-      if (response.ok) {
+        await sendPortBlockingRules(rules); // API çağrısı, response değişkeni olmadan
         alert("Port engelleme kuralları başarıyla gönderildi!");
-      } else {
-        alert("Kurallar gönderilirken bir hata oluştu.");
-      }
     } catch (error) {
-      alert("Bağlantı hatası: " + error.message);
+        alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
     }
-  };
+};
+
 
   return (
     <div className="container mt-4">

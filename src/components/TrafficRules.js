@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
+import { sendFirewallRules } from "../api";
 
 const TrafficRules = () => {
   const [rules, setRules] = useState([]);
@@ -10,6 +11,8 @@ const TrafficRules = () => {
     portRange: "",
     action: "allow",
   });
+  
+  const [error, setError] = useState("");
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -17,6 +20,11 @@ const TrafficRules = () => {
   };
 
   const handleAddRule = () => {
+    if (!formData.sourceIP || !formData.destinationIP || !formData.portRange) {
+      setError("Lütfen tüm zorunlu alanları doldurun.");
+      return;
+    }
+    setError("");
     setRules([...rules, formData]);
     setFormData({
       sourceIP: "",
@@ -34,27 +42,15 @@ const TrafficRules = () => {
 
   const handleSubmitToFirewall = async () => {
     try {
-      const response = await fetch("http://openwrt-ip/api/firewall/rules", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ rules }),
-      });
-
-      if (response.ok) {
-        alert("Kurallar başarıyla gönderildi!");
-      } else {
-        alert("Kurallar gönderilirken bir hata oluştu.");
-      }
+      await sendFirewallRules(rules);
+      alert("Kurallar başarıyla gönderildi!");
     } catch (error) {
-      alert("Bağlantı hatası: " + error.message);
+      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
     }
   };
 
   return (
     <div className="container mt-4">
-      {/* Bilgilendirme Accordion */}
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
@@ -63,92 +59,13 @@ const TrafficRules = () => {
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <ul>
-              <li>
-                <strong>Kaynak IP:</strong> Ağdaki bir cihazın IP adresidir.
-                Örneğin, bir bilgisayardan veya cihazdan gelen trafiği
-                sınırlamak istiyorsanız, o cihazın IP adresini buraya
-                girersiniz.
-                <em>(Örnek: 192.168.1.10)</em>
-                <br />
-                <small className="text-muted">
-                  Not: IP adresinizi bilmiyorsanız,{" "}
-                  <strong>kullanıcı dökümantasyonumuza</strong> bakabilir,
-                  internet sağlayıcınızla iletişime geçebilir ya da modem
-                  üreticinizden yardım alabilirsiniz.
-                </small>
-              </li>
-              <li>
-                <strong>Hedef IP:</strong> Trafiğin ulaşacağı IP adresidir.
-                Örneğin, bir web sitesine (Google gibi) erişimi kontrol etmek
-                istiyorsanız, bu IP adresini belirtmelisiniz.
-                <em>(Örnek: 8.8.8.8)</em>
-              </li>
-              <li>
-                <strong>Protokoller:</strong>
-                <ul>
-                  <li>
-                    <strong>TCP:</strong> Web tarayıcıları ve uygulamalar gibi
-                    güvenilir veri aktarımı gerektiren bağlantılarda kullanılır.
-                  </li>
-                  <li>
-                    <strong>UDP:</strong> Ses ve video gibi düşük gecikme
-                    gerektiren veri aktarımı için kullanılır.
-                  </li>
-                  <li>
-                    <strong>ICMP:</strong> Ping ve ağ teşhis araçları için
-                    kullanılır.
-                  </li>
-                </ul>
-              </li>
-              <li>
-                <strong>Port Aralığı:</strong> Hangi hizmetlerin veya
-                uygulamaların kontrol edileceğini belirlemek için kullanılır.
-                Örneğin, web sitelerine erişim için 80 ve 443 portları, e-posta
-                hizmetleri için 25 portu kullanılır.
-                <em>(Örnek: 80-443)</em>
-              </li>
-              <li>
-                <strong>Kural Türü:</strong>
-                <ul>
-                  <li>
-                    <strong>İzin Ver:</strong> Belirtilen trafiğin geçmesine
-                    izin verir. (Örneğin, belirli bir cihaza internet erişimi
-                    sağlamak.)
-                  </li>
-                  <li>
-                    <strong>Engelle:</strong> Belirtilen trafiğin geçişini
-                    durdurur. (Örneğin, belirli bir IP'ye erişimi yasaklamak.)
-                  </li>
-                </ul>
-              </li>
-              <li>
-                <strong>Firewall'un Amacı:</strong> Firewall, ağınızı izinsiz
-                erişimlerden ve potansiyel tehditlerden korur. Bu kuralları
-                oluşturmak, güvenlik seviyenizi artırırken ağ trafiğinizi
-                düzenlemenize yardımcı olur.
-              </li>
-            </ul>
+            <p>Burada trafik kurallarını belirleyebilirsiniz.</p>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
 
       <h2 className="text-success">Trafik Yönetimi</h2>
-      <p>
-        Trafik yönlendirme, bir ağda veri paketlerinin doğru cihazlara
-        iletilmesini sağlar. Ağ performansını optimize etmek, belirli trafiği
-        önceliklendirmek veya güvenlik için belirli trafiği engellemek amacıyla
-        kullanılır. Örneğin, bir cihazdan sadece belirli bir sunucuya erişim
-        izni vermek gibi.
-      </p>
-      <p>
-        <strong>Neden Kullanılır?</strong>ağ performansını artırmak, belirli
-        trafiği önceliklendirmek ve güvenliği sağlamak için kullanılır. Örneğin,
-        kritik uygulamalara öncelik tanımak veya istenmeyen trafiği engellemek
-        amacıyla uygulanır.
-      </p>
 
-      {/* Form */}
       <div className="card p-4 mb-4 shadow-sm">
         <h5>Kural Ekle</h5>
         <div className="row g-3">
@@ -211,12 +128,12 @@ const TrafficRules = () => {
             </select>
           </div>
         </div>
+        {error && <small className="text-danger mt-2">{error}</small>}
         <button className="btn btn-success mt-3" onClick={handleAddRule}>
           Kural Ekle
         </button>
       </div>
 
-      {/* Kurallar Listesi */}
       <div className="card p-4 shadow-sm">
         <h5>Eklenen Kurallar</h5>
         {rules.length > 0 ? (
@@ -227,9 +144,7 @@ const TrafficRules = () => {
                 className="list-group-item d-flex justify-content-between align-items-center"
               >
                 <span>
-                  {rule.sourceIP} → {rule.destinationIP} ({rule.protocol},{" "}
-                  {rule.portRange}) -{" "}
-                  {rule.action === "allow" ? "İzin Ver" : "Engelle"}
+                  {rule.sourceIP} → {rule.destinationIP} ({rule.protocol}, {rule.portRange}) - {rule.action === "allow" ? "İzin Ver" : "Engelle"}
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
@@ -245,7 +160,6 @@ const TrafficRules = () => {
         )}
       </div>
 
-      {/* Firewall'a Gönder */}
       <div className="d-flex justify-content-end mt-4">
         <button className="btn btn-success" onClick={handleSubmitToFirewall}>
           Firewall'a Gönder

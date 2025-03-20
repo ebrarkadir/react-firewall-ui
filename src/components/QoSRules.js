@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
+import { sendQoSRules } from "../api"; // 🔥 API entegrasyonu eklendi
 
 const QoSRules = () => {
   const [rules, setRules] = useState([]);
@@ -44,7 +45,6 @@ const QoSRules = () => {
   };
 
   const handleAddRule = () => {
-    // Zorunlu alan kontrolü
     if (!formData.macAddress) {
       setRequiredError("Lütfen bir MAC adresi girin.");
       return;
@@ -71,21 +71,10 @@ const QoSRules = () => {
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      const response = await fetch("http://openwrt-ip/api/qos/rules", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ rules }),
-      });
-
-      if (response.ok) {
-        alert("Trafik önceliklendirme(QoS) kuralları başarıyla gönderildi!");
-      } else {
-        alert("Kurallar gönderilirken bir hata oluştu.");
-      }
+      await sendQoSRules(rules); // 🔥 API çağrısı
+      alert("Trafik önceliklendirme (QoS) kuralları başarıyla gönderildi!");
     } catch (error) {
-      alert("Bağlantı hatası: " + error.message);
+      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
     }
   };
 
@@ -96,13 +85,13 @@ const QoSRules = () => {
         <Accordion.Item eventKey="0">
           <Accordion.Header>
             <span style={{ color: "green", fontWeight: "bold" }}>
-              Trafik Önceliklendirme(QoS) Kullanımı
+              Trafik Önceliklendirme (QoS) Kullanımı
             </span>
           </Accordion.Header>
           <Accordion.Body>
             <ul>
               <li>
-                <strong>MAC Adresi:</strong> Trafik önceliği(QoS) tanımlanacak
+                <strong>MAC Adresi:</strong> Trafik önceliği (QoS) tanımlanacak
                 cihazın fiziksel adresi.
                 <em>(Örnek: 00:1A:2B:3C:4D:5E)</em>
               </li>
@@ -120,16 +109,11 @@ const QoSRules = () => {
         </Accordion.Item>
       </Accordion>
 
-      <h2 className="text-success">Trafik Önceliklendirme(QoS)</h2>
+      <h2 className="text-success">Trafik Önceliklendirme (QoS)</h2>
       <p>
         Trafik Önceliklendirme (QoS), ağdaki kritik cihazlara veya uygulamalara
         öncelik tanıyarak ağ performansını artırır ve kaynakları verimli
         kullanmayı sağlar.
-      </p>
-      <p>
-        <strong>Neden Kullanılır? </strong>kritik uygulamalara kesintisiz erişim
-        sağlamak, ağ trafiğini optimize etmek ve yoğunluk sırasında performansı
-        artırmak için kullanılır.
       </p>
 
       {/* Form */}
@@ -137,7 +121,7 @@ const QoSRules = () => {
         <h5>Kural Ekle</h5>
         <div className="row g-3">
           <div className="col-md-4">
-            <label>MAC Adresi </label>
+            <label>MAC Adresi</label>
             <input
               type="text"
               className="form-control"

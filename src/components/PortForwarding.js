@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
+import { sendPortForwardingRules } from "../api"; // 🔥 API entegrasyonu eklendi
 
 const PortForwarding = () => {
   const [rules, setRules] = useState([]);
@@ -49,7 +50,6 @@ const PortForwarding = () => {
   };
 
   const handleAddRule = () => {
-    // Zorunlu alanların kontrolü
     if (!formData.destinationIP || !formData.sourcePort || !formData.destinationPort) {
       setRequiredError("Lütfen tüm zorunlu alanları doldurun.");
       return;
@@ -78,21 +78,10 @@ const PortForwarding = () => {
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      const response = await fetch("http://openwrt-ip/api/portforwarding/rules", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ rules }),
-      });
-
-      if (response.ok) {
-        alert("Port yönlendirme kuralları başarıyla gönderildi!");
-      } else {
-        alert("Kurallar gönderilirken bir hata oluştu.");
-      }
+      await sendPortForwardingRules(rules); // 🔥 API çağrısı
+      alert("Port yönlendirme kuralları başarıyla gönderildi!");
     } catch (error) {
-      alert("Bağlantı hatası: " + error.message);
+      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
     }
   };
 
@@ -116,31 +105,7 @@ const PortForwarding = () => {
               </li>
               <li>
                 <strong>Hedef IP (Zorunlu):</strong> Trafiğin yönlendirileceği ağ
-                içindeki cihazın IP adresi. Bu alan mutlaka doldurulmalıdır.
-                <em>(Örnek: 192.168.1.20)</em>
-              </li>
-              <li>
-                <strong>Protokoller:</strong>
-                <ul>
-                  <li>
-                    <strong>TCP:</strong> Güvenilir veri iletimi için kullanılır
-                    (örneğin, web ve e-posta).
-                  </li>
-                  <li>
-                    <strong>UDP:</strong> Hızlı ancak güvenilir olmayan veri
-                    iletimi (örneğin, oyunlar ve canlı yayın).
-                  </li>
-                </ul>
-              </li>
-              <li>
-                <strong>Kaynak Port:</strong> Dış ağdan gelen trafiğin giriş
-                yaptığı port numarası.
-                <em>(Örnek: 80)</em>
-              </li>
-              <li>
-                <strong>Hedef Port:</strong> Trafiğin ağ içindeki cihaz üzerinde
-                yönlendirileceği port numarası.
-                <em>(Örnek: 8080)</em>
+                içindeki cihazın IP adresi.
               </li>
             </ul>
           </Accordion.Body>
@@ -148,17 +113,7 @@ const PortForwarding = () => {
       </Accordion>
 
       <h2 className="text-success">Port Yönlendirme</h2>
-      <p>
-        Port yönlendirme, bir ağın dışından gelen belirli bir bağlantıyı, iç
-        ağdaki belirli bir cihaza veya hizmete yönlendirme işlemidir. Örneğin,
-        bir web sunucusuna, güvenlik kamerasına veya oyun sunucusuna dışarıdan
-        erişim sağlamak için kullanılır.
-      </p>
-      <p>
-        <strong>Neden Kullanılır?</strong> Harici kullanıcıların iç ağdaki
-        cihazlara erişimini sağlamak, bir hizmeti (örneğin web sunucusu) dış
-        dünyaya açmak ve ağ güvenliğini kontrol altında tutmak için kullanılır.
-      </p>
+      <p>Port yönlendirme, ağ dışından gelen bağlantıları belirli cihazlara yönlendirir.</p>
 
       {/* Form */}
       <div className="card p-4 mb-4 shadow-sm">
@@ -174,7 +129,6 @@ const PortForwarding = () => {
               onChange={handleInputChange}
               placeholder="Ör: 192.168.1.10"
             />
-            {ipError && <small className="text-danger">{ipError}</small>}
           </div>
           <div className="col-md-4">
             <label>Hedef IP</label>
@@ -186,7 +140,6 @@ const PortForwarding = () => {
               onChange={handleInputChange}
               placeholder="Ör: 192.168.1.20"
             />
-            {ipError && <small className="text-danger">{ipError}</small>}
           </div>
           <div className="col-md-4">
             <label>Protokol</label>
@@ -210,7 +163,6 @@ const PortForwarding = () => {
               onChange={handleInputChange}
               placeholder="Ör: 80"
             />
-            {portError && <small className="text-danger">{portError}</small>}
           </div>
           <div className="col-md-4">
             <label>Hedef Port</label>
@@ -222,7 +174,6 @@ const PortForwarding = () => {
               onChange={handleInputChange}
               placeholder="Ör: 8080"
             />
-            {portError && <small className="text-danger">{portError}</small>}
           </div>
         </div>
         {requiredError && <small className="text-danger mt-2">{requiredError}</small>}
@@ -237,18 +188,12 @@ const PortForwarding = () => {
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, index) => (
-              <li
-                key={index}
-                className="list-group-item d-flex justify-content-between align-items-center"
-              >
+              <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                 <span>
                   {rule.sourceIP || "Tüm IP'ler"}:{rule.sourcePort} →{" "}
                   {rule.destinationIP}:{rule.destinationPort} ({rule.protocol})
                 </span>
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleDeleteRule(index)}
-                >
+                <button className="btn btn-danger btn-sm" onClick={() => handleDeleteRule(index)}>
                   Sil
                 </button>
               </li>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
+import { sendMACRules } from "../api"; // API çağrısı için fonksiyon
 
 const MACRules = () => {
   const [rules, setRules] = useState([]);
@@ -20,7 +21,6 @@ const MACRules = () => {
     // MAC adresi doğrulama
     if (name === "macAddress") {
       const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
-
       if (!macRegex.test(value) && value !== "") {
         setMacError("Geçerli bir MAC adresi giriniz. Örnek: 00:1A:2B:3C:4D:5E");
       } else {
@@ -31,8 +31,7 @@ const MACRules = () => {
     // Zaman doğrulama
     if (name === "startTime" || name === "endTime") {
       const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-
-      if (!timeRegex.test(value)) {
+      if (!timeRegex.test(value) && value !== "") {
         setTimeError("Zaman formatı HH:MM şeklinde olmalıdır. Örnek: 08:00");
       } else {
         setTimeError("");
@@ -43,7 +42,6 @@ const MACRules = () => {
   };
 
   const handleAddRule = () => {
-    // Zorunlu alanların kontrolü
     if (!formData.macAddress) {
       setRequiredError("Lütfen bir MAC adresi girin.");
       return;
@@ -71,27 +69,15 @@ const MACRules = () => {
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      const response = await fetch("http://openwrt-ip/api/macrouting/rules", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ rules }),
-      });
-
-      if (response.ok) {
-        alert("MAC adresi bazlı kurallar başarıyla gönderildi!");
-      } else {
-        alert("Kurallar gönderilirken bir hata oluştu.");
-      }
+      await sendMACRules(rules);
+      alert("MAC adresi bazlı kurallar başarıyla gönderildi!");
     } catch (error) {
-      alert("Bağlantı hatası: " + error.message);
+      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
     }
   };
 
   return (
     <div className="container mt-4">
-      {/* Bilgilendirme Accordion */}
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
@@ -117,12 +103,7 @@ const MACRules = () => {
       </Accordion>
 
       <h2 className="text-success">MAC Adresi Bazlı Kurallar</h2>
-      <p>
-        MAC Adresi Kuralları, ağ üzerindeki cihazların fiziksel adreslerine (MAC adreslerine) göre erişim kontrolü sağlar.
-        Belirli cihazlara ağ erişimi izni verme, engelleme veya zaman bazlı erişim kısıtlaması işlemleri yapılabilir.
-      </p>
 
-      {/* Form */}
       <div className="card p-4 mb-4 shadow-sm">
         <h5>Kural Ekle</h5>
         <div className="row g-3">
@@ -183,7 +164,6 @@ const MACRules = () => {
         </button>
       </div>
 
-      {/* Kurallar Listesi */}
       <div className="card p-4 shadow-sm">
         <h5>Eklenen Kurallar</h5>
         {rules.length > 0 ? (
@@ -211,7 +191,6 @@ const MACRules = () => {
         )}
       </div>
 
-      {/* OpenWRT'ye Gönder */}
       <div className="d-flex justify-content-end mt-4">
         <button className="btn btn-success" onClick={handleSubmitToOpenWRT}>
           Firewall'a Gönder

@@ -10,9 +10,10 @@ export const sendFirewallRules = async (rules) => {
             },
             body: JSON.stringify({ rules }),
         });
+
         return await response.json();
     } catch (error) {
-        console.error("Firewall API Hatası:", error);
+        console.error("🔥 Firewall API Hatası:", error);
         throw error;
     }
 };
@@ -27,9 +28,10 @@ export const sendPortForwardingRules = async (rules) => {
             },
             body: JSON.stringify({ rules }),
         });
+
         return await response.json();
     } catch (error) {
-        console.error("Port Forwarding API Hatası:", error);
+        console.error("🔥 Port Forwarding API Hatası:", error);
         throw error;
     }
 };
@@ -44,9 +46,10 @@ export const sendPortBlockingRules = async (rules) => {
             },
             body: JSON.stringify({ rules }),
         });
+
         return await response.json();
     } catch (error) {
-        console.error("Port Blocking API Hatası:", error);
+        console.error("🔥 Port Blocking API Hatası:", error);
         throw error;
     }
 };
@@ -61,9 +64,10 @@ export const sendMACRules = async (rules) => {
             },
             body: JSON.stringify({ rules }),
         });
+
         return await response.json();
     } catch (error) {
-        console.error("MAC Rules API Hatası:", error);
+        console.error("🔥 MAC Rules API Hatası:", error);
         throw error;
     }
 };
@@ -78,9 +82,10 @@ export const sendDNSBlockingRules = async (rules) => {
             },
             body: JSON.stringify({ rules }),
         });
+
         return await response.json();
     } catch (error) {
-        console.error("DNS Blocking API Hatası:", error);
+        console.error("🔥 DNS Blocking API Hatası:", error);
         throw error;
     }
 };
@@ -95,9 +100,10 @@ export const sendQoSRules = async (rules) => {
             },
             body: JSON.stringify({ rules }),
         });
+
         return await response.json();
     } catch (error) {
-        console.error("QoS API Hatası:", error);
+        console.error("🔥 QoS API Hatası:", error);
         throw error;
     }
 };
@@ -112,9 +118,36 @@ export const sendVPNRules = async (rules) => {
             },
             body: JSON.stringify({ rules }),
         });
+
         return await response.json();
     } catch (error) {
-        console.error("VPN/NAT API Hatası:", error);
+        console.error("🔥 VPN/NAT API Hatası:", error);
+        throw error;
+    }
+};
+
+// 🔥 8. Zaman Bazlı Trafik Yönetimi Kuralları
+export const sendTimeBasedRules = async (rules) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/timebased/rules`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ rules }),
+        });
+
+        // Yanıtın JSON formatında olup olmadığını kontrol et
+        const textResponse = await response.text();
+        console.log("🔥 Time-Based API Yanıtı (Text):", textResponse);
+
+        if (!textResponse.trim()) {
+            throw new Error("Boş yanıt döndü! API, geçerli bir JSON yanıtı vermiyor.");
+        }
+
+        return JSON.parse(textResponse);
+    } catch (error) {
+        console.error("🔥 Time-Based Rules API Hatası:", error);
         throw error;
     }
 };

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
+import { sendTimeBasedRules } from "../api"; // 🔥 API entegrasyonu eklendi
 
 const TimeBasedRules = () => {
   const [rules, setRules] = useState([]);
@@ -49,7 +50,6 @@ const TimeBasedRules = () => {
   };
 
   const handleAddRule = () => {
-    // Zorunlu alanların kontrolü
     if (!formData.startTime || !formData.endTime || !formData.portRange) {
       setRequiredError("Lütfen tüm zorunlu alanları doldurun.");
       return;
@@ -78,21 +78,10 @@ const TimeBasedRules = () => {
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      const response = await fetch("http://openwrt-ip/api/timebased/rules", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ rules }),
-      });
-
-      if (response.ok) {
-        alert("Port-Zaman kurallar başarıyla gönderildi!");
-      } else {
-        alert("Kurallar gönderilirken bir hata oluştu.");
-      }
+      await sendTimeBasedRules(rules); // 🔥 API çağrısı
+      alert("Port-Zaman kuralları başarıyla gönderildi!");
     } catch (error) {
-      alert("Bağlantı hatası: " + error.message);
+      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
     }
   };
 
@@ -135,12 +124,6 @@ const TimeBasedRules = () => {
       <p>
         Zaman Bazlı Kurallar, belirli saat aralıklarında ağ trafiğini kontrol
         etmek için kullanılan kurallardır.
-      </p>
-      <p>
-        <strong>Neden Kullanılır?</strong> ağ güvenliğini artırmak, belirli
-        saatlerde erişimi kontrol etmek ve trafiği optimize etmek için
-        kullanılır. Örneğin, mesai saatleri dışında belirli servisleri
-        kısıtlamak.
       </p>
 
       {/* Form */}
@@ -245,7 +228,6 @@ const TimeBasedRules = () => {
         )}
       </div>
 
-      {/* OpenWRT'ye Gönder */}
       <div className="d-flex justify-content-end mt-4">
         <button className="btn btn-success" onClick={handleSubmitToOpenWRT}>
           Firewall'a Gönder

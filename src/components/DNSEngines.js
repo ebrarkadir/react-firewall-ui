@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
+import { sendDNSBlockingRules } from "../api"; // 🔥 API çağrısını içe aktardık
 
 const DNSEngines = () => {
   const [rules, setRules] = useState([]);
@@ -44,9 +45,7 @@ const DNSEngines = () => {
 
     setRequiredError("");
     setRules([...rules, formData]);
-    setFormData({
-      domainOrURL: "",
-    });
+    setFormData({ domainOrURL: "" });
   };
 
   const handleDeleteRule = (index) => {
@@ -56,19 +55,8 @@ const DNSEngines = () => {
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      const response = await fetch("http://openwrt-ip/api/dnsblocking/rules", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ rules }),
-      });
-
-      if (response.ok) {
-        alert("URL/DNS engelleme kuralları başarıyla gönderildi!");
-      } else {
-        alert("Kurallar gönderilirken bir hata oluştu.");
-      }
+      await sendDNSBlockingRules(rules); // 🔥 API'yi kullanarak kuralları gönder
+      alert("URL/DNS engelleme kuralları başarıyla gönderildi!");
     } catch (error) {
       alert("Bağlantı hatası: " + error.message);
     }
@@ -111,7 +99,7 @@ const DNSEngines = () => {
         veya belirli platformlara erişimi engellemek için kullanılır.
       </p>
       <p>
-        <strong>Neden Kullanılır? </strong> ağ güvenliğini artırmak, zararlı
+        <strong>Neden Kullanılır?</strong> Ağ güvenliğini artırmak, zararlı
         yazılımları engellemek, istenmeyen içeriklere erişimi kısıtlamak ve iş
         yerlerinde verimliliği artırmak için kullanılır.
       </p>
@@ -169,7 +157,7 @@ const DNSEngines = () => {
       {/* OpenWRT'ye Gönder */}
       <div className="d-flex justify-content-end mt-4">
         <button className="btn btn-success" onClick={handleSubmitToOpenWRT}>
-          Firewall'apar Gönder
+          Firewall'a Gönder
         </button>
       </div>
     </div>

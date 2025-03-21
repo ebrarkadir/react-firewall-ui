@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
+import { sendVPNRules } from "../api"; // 🔥 API entegrasyonu eklendi
 
 const VPNRules = () => {
   const [rules, setRules] = useState([]);
@@ -18,7 +19,7 @@ const VPNRules = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // IP adresi doğrulama
+    // IP doğrulama
     if (name === "sourceIP" || name === "destinationIP") {
       const ipRegex =
         /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
@@ -34,7 +35,7 @@ const VPNRules = () => {
       }
     }
 
-    // Port numarası doğrulama
+    // Port doğrulama
     if (name === "portRange") {
       const portRegex = /^[0-9]+(-[0-9]+)?$/;
 
@@ -78,27 +79,19 @@ const VPNRules = () => {
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      const response = await fetch("http://openwrt-ip/api/vpn-nat/rules", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ rules }),
-      });
+      console.log("🔥 API'ye gönderilen veriler:", rules);
+      const response = await sendVPNRules(rules);
+      console.log("🔥 API Yanıtı:", response);
 
-      if (response.ok) {
-        alert("VPN ve NAT kuralları başarıyla gönderildi!");
-      } else {
-        alert("Kurallar gönderilirken bir hata oluştu.");
-      }
+      alert("VPN ve NAT kuralları başarıyla gönderildi!");
     } catch (error) {
-      alert("Bağlantı hatası: " + error.message);
+      console.error("🔥 API Hata Yanıtı:", error);
+      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
     }
   };
 
   return (
     <div className="container mt-4">
-      {/* Bilgilendirme Accordion */}
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
@@ -109,32 +102,19 @@ const VPNRules = () => {
           <Accordion.Body>
             <ul>
               <li>
-                <strong>Kaynak IP:</strong> VPN veya NAT için trafik başlatan
-                cihazın IP adresi.
+                <strong>Kaynak IP:</strong> VPN veya NAT için trafik başlatan cihazın IP adresi.
                 <em>(Örnek: 192.168.1.10)</em>
               </li>
               <li>
-                <strong>Hedef IP:</strong> Trafiğin yönlendirileceği veya erişim
-                sağlanacağı IP adresi.
+                <strong>Hedef IP:</strong> Trafiğin yönlendirileceği veya erişim sağlanacağı IP adresi.
                 <em>(Örnek: 8.8.8.8)</em>
               </li>
               <li>
-                <strong>Protokol:</strong> TCP, UDP gibi ağ protokolleri. VPN
-                için genellikle UDP kullanılır.
+                <strong>Protokol:</strong> TCP, UDP gibi ağ protokolleri. VPN için genellikle UDP kullanılır.
               </li>
               <li>
-                <strong>Port Aralığı:</strong> Yönlendirme yapılacak veya izin
-                verilecek portlar.
+                <strong>Port Aralığı:</strong> Yönlendirme yapılacak veya izin verilecek portlar.
                 <em>(Örnek: 1194 veya 8000-8080)</em>
-              </li>
-              <li>
-                <strong>VPN:</strong> İnternet trafiğinizi şifreli bir tünel
-                üzerinden yönlendirerek güvenlik ve gizlilik sağlar.
-              </li>
-              <li>
-                <strong>NAT:</strong> İç ağdaki cihazların tek bir genel IP
-                adresi üzerinden internete erişmesini veya dışarıdan
-                erişilebilir olmasını sağlar.
               </li>
             </ul>
           </Accordion.Body>
@@ -155,7 +135,6 @@ const VPNRules = () => {
         ve iç ağ cihazlarının dış dünyayla iletişimini sağlamak için kullanılır.
       </p>
 
-      {/* Form */}
       <div className="card p-4 mb-4 shadow-sm">
         <h5>Kural Ekle</h5>
         <div className="row g-3">
@@ -220,49 +199,27 @@ const VPNRules = () => {
             </select>
           </div>
         </div>
-        {requiredError && (
-          <small className="text-danger mt-2">{requiredError}</small>
-        )}
+        {requiredError && <small className="text-danger mt-2">{requiredError}</small>}
         <button className="btn btn-success mt-3" onClick={handleAddRule}>
           Kural Ekle
         </button>
       </div>
 
-      {/* Kurallar Listesi */}
       <div className="card p-4 shadow-sm">
         <h5>Eklenen Kurallar</h5>
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, index) => (
-              <li
-                key={index}
-                className="list-group-item d-flex justify-content-between align-items-center"
-              >
-                <span>
-                  {rule.sourceIP} → {rule.destinationIP} ({rule.protocol},{" "}
-                  {rule.portRange || "Tüm Portlar"}) -{" "}
-                  {rule.ruleType === "vpn" ? "VPN" : "NAT"}
-                </span>
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleDeleteRule(index)}
-                >
-                  Sil
-                </button>
+              <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                <span>{rule.sourceIP} → {rule.destinationIP} ({rule.protocol}, {rule.portRange || "Tüm Portlar"}) - {rule.ruleType === "vpn" ? "VPN" : "NAT"}</span>
+                <button className="btn btn-danger btn-sm" onClick={() => handleDeleteRule(index)}>Sil</button>
               </li>
             ))}
           </ul>
-        ) : (
-          <p>Henüz bir kural eklenmedi.</p>
-        )}
+        ) : (<p>Henüz bir kural eklenmedi.</p>)}
       </div>
 
-      {/* OpenWRT'ye Gönder */}
-      <div className="d-flex justify-content-end mt-4">
-        <button className="btn btn-success" onClick={handleSubmitToOpenWRT}>
-          Firewall'a Gönder
-        </button>
-      </div>
+      <button className="btn btn-success mt-4" onClick={handleSubmitToOpenWRT}>Firewall'a Gönder</button>
     </div>
   );
 };

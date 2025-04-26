@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendTimeBasedRules } from "../api"; // 🔥 API entegrasyonu eklendi
+import { sendTimeBasedRules } from "../api";
 
 const TimeBasedRules = () => {
   const [rules, setRules] = useState([]);
@@ -19,26 +19,17 @@ const TimeBasedRules = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Port aralığı doğrulama
     if (name === "portRange") {
       const portRegex = /^[0-9]{1,5}(-[0-9]{1,5})?$/;
-
-      if (
-        !portRegex.test(value) ||
-        value.split("-").some((p) => parseInt(p) > 65535)
-      ) {
-        setPortError(
-          "Port numarası 0-65535 arasında olmalıdır. Örnek: 80-100 veya 443"
-        );
+      if (!portRegex.test(value) || value.split("-").some((p) => parseInt(p) > 65535)) {
+        setPortError("Port numarası 0-65535 arasında olmalıdır. Örnek: 80-100 veya 443");
       } else {
         setPortError("");
       }
     }
 
-    // Zaman doğrulama
     if (name === "startTime" || name === "endTime") {
-      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/; // 24 saat formatı
-
+      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
       if (!timeRegex.test(value)) {
         setTimeError("Zaman formatı HH:MM şeklinde olmalıdır. Örnek: 08:00");
       } else {
@@ -78,7 +69,7 @@ const TimeBasedRules = () => {
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      await sendTimeBasedRules(rules); // 🔥 API çağrısı
+      await sendTimeBasedRules(rules);
       alert("Port-Zaman kuralları başarıyla gönderildi!");
     } catch (error) {
       alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
@@ -87,48 +78,37 @@ const TimeBasedRules = () => {
 
   return (
     <div className="container mt-4">
-      {/* Bilgilendirme Accordion */}
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
-            <span style={{ color: "green", fontWeight: "bold" }}>
+            <span style={{ color: "#D84040", fontWeight: "bold" }}>
               Port-Zaman Kuralları Kullanımı
             </span>
           </Accordion.Header>
           <Accordion.Body>
             <ul>
               <li>
-                <strong>Başlangıç ve Bitiş Saatleri:</strong> Kuralın geçerli
-                olacağı zaman dilimini belirtir.
-                <em>(Örnek: 08:00 - 18:00)</em>
+                <strong>Başlangıç ve Bitiş Saatleri:</strong> Kuralın geçerli olacağı zaman dilimini belirtir. <em>(Örnek: 08:00 - 18:00)</em>
               </li>
               <li>
-                <strong>Protokoller:</strong> TCP veya UDP gibi ağ
-                protokollerini seçebilirsiniz.
+                <strong>Protokoller:</strong> TCP veya UDP gibi ağ protokollerini seçebilirsiniz.
               </li>
               <li>
-                <strong>Port Aralığı:</strong> Hangi portlar için kural
-                uygulanacağını belirtir.
-                <em>(Örnek: 80-100 veya 443)</em>
+                <strong>Port Aralığı:</strong> Hangi portlar için kural uygulanacağını belirtir. <em>(Örnek: 80-100 veya 443)</em>
               </li>
               <li>
-                <strong>Kural Türü:</strong> Trafiğe izin verme veya engelleme
-                işlemini belirler.
+                <strong>Kural Türü:</strong> Trafiğe izin verme veya engelleme işlemini belirler.
               </li>
             </ul>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
 
-      <h2 className="text-success">Port-Zaman Kurallar</h2>
-      <p>
-        Zaman Bazlı Kurallar, belirli saat aralıklarında ağ trafiğini kontrol
-        etmek için kullanılan kurallardır.
-      </p>
+      <h2 style={{ color: "#D84040" }}>Port-Zaman Kurallar</h2>
+      <p>Zaman Bazlı Kurallar, belirli saat aralıklarında ağ trafiğini kontrol etmek için kullanılan kurallardır.</p>
 
-      {/* Form */}
       <div className="card p-4 mb-4 shadow-sm">
-        <h5>Kural Ekle</h5>
+        <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
           <div className="col-md-4">
             <label>Başlangıç Saati </label>
@@ -191,17 +171,18 @@ const TimeBasedRules = () => {
             </select>
           </div>
         </div>
-        {requiredError && (
-          <small className="text-danger mt-2">{requiredError}</small>
-        )}
-        <button className="btn btn-success mt-3" onClick={handleAddRule}>
+        {requiredError && <small className="text-danger mt-2">{requiredError}</small>}
+        <button
+          className="btn mt-3"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleAddRule}
+        >
           Kural Ekle
         </button>
       </div>
 
-      {/* Kurallar Listesi */}
       <div className="card p-4 shadow-sm">
-        <h5>Eklenen Kurallar</h5>
+        <h5 style={{ color: "#D84040" }}>Eklenen Kurallar</h5>
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, index) => (
@@ -210,9 +191,7 @@ const TimeBasedRules = () => {
                 className="list-group-item d-flex justify-content-between align-items-center"
               >
                 <span>
-                  {rule.startTime} - {rule.endTime}, {rule.protocol} Port:{" "}
-                  {rule.portRange} -{" "}
-                  {rule.action === "allow" ? "İzin Ver" : "Engelle"}
+                  {rule.startTime} - {rule.endTime}, {rule.protocol} Port: {rule.portRange} - {rule.action === "allow" ? "İzin Ver" : "Engelle"}
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
@@ -229,7 +208,11 @@ const TimeBasedRules = () => {
       </div>
 
       <div className="d-flex justify-content-end mt-4">
-        <button className="btn btn-success" onClick={handleSubmitToOpenWRT}>
+        <button
+          className="btn"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleSubmitToOpenWRT}
+        >
           Firewall'a Gönder
         </button>
       </div>

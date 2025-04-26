@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendVPNRules } from "../api"; // 🔥 API entegrasyonu eklendi
+import { sendVPNRules } from "../api";
 
 const VPNRules = () => {
   const [rules, setRules] = useState([]);
@@ -19,23 +19,16 @@ const VPNRules = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // IP doğrulama
     if (name === "sourceIP" || name === "destinationIP") {
-      const ipRegex =
-        /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
+      const ipRegex = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
 
       if (!ipRegex.test(value) && value !== "") {
-        setIpError(
-          `${
-            name === "sourceIP" ? "Kaynak" : "Hedef"
-          } IP formatı hatalı! Örnek: 192.168.1.10`
-        );
+        setIpError(`${name === "sourceIP" ? "Kaynak" : "Hedef"} IP formatı hatalı! Örnek: 192.168.1.10`);
       } else {
         setIpError("");
       }
     }
 
-    // Port doğrulama
     if (name === "portRange") {
       const portRegex = /^[0-9]+(-[0-9]+)?$/;
 
@@ -50,7 +43,6 @@ const VPNRules = () => {
   };
 
   const handleAddRule = () => {
-    // Zorunlu alan kontrolü
     if (!formData.sourceIP || !formData.destinationIP) {
       setRequiredError("Lütfen tüm zorunlu alanları doldurun.");
       return;
@@ -79,13 +71,9 @@ const VPNRules = () => {
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      console.log("🔥 API'ye gönderilen veriler:", rules);
       const response = await sendVPNRules(rules);
-      console.log("🔥 API Yanıtı:", response);
-
       alert("VPN ve NAT kuralları başarıyla gönderildi!");
     } catch (error) {
-      console.error("🔥 API Hata Yanıtı:", error);
       alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
     }
   };
@@ -95,48 +83,27 @@ const VPNRules = () => {
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
-            <span style={{ color: "green", fontWeight: "bold" }}>
+            <span style={{ color: "#D84040", fontWeight: "bold" }}>
               VPN ve NAT Kuralları Kullanımı
             </span>
           </Accordion.Header>
           <Accordion.Body>
             <ul>
-              <li>
-                <strong>Kaynak IP:</strong> VPN veya NAT için trafik başlatan cihazın IP adresi.
-                <em>(Örnek: 192.168.1.10)</em>
-              </li>
-              <li>
-                <strong>Hedef IP:</strong> Trafiğin yönlendirileceği veya erişim sağlanacağı IP adresi.
-                <em>(Örnek: 8.8.8.8)</em>
-              </li>
-              <li>
-                <strong>Protokol:</strong> TCP, UDP gibi ağ protokolleri. VPN için genellikle UDP kullanılır.
-              </li>
-              <li>
-                <strong>Port Aralığı:</strong> Yönlendirme yapılacak veya izin verilecek portlar.
-                <em>(Örnek: 1194 veya 8000-8080)</em>
-              </li>
+              <li><strong>Kaynak IP:</strong> VPN veya NAT için trafik başlatan cihazın IP adresi. <em>(Örnek: 192.168.1.10)</em></li>
+              <li><strong>Hedef IP:</strong> Trafiğin yönlendirileceği veya erişim sağlanacağı IP adresi. <em>(Örnek: 8.8.8.8)</em></li>
+              <li><strong>Protokol:</strong> TCP, UDP gibi ağ protokolleri. VPN için genellikle UDP kullanılır.</li>
+              <li><strong>Port Aralığı:</strong> Yönlendirme yapılacak veya izin verilecek portlar. <em>(Örnek: 1194 veya 8000-8080)</em></li>
             </ul>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
 
-      <h2 className="text-success">VPN ve NAT Kuralları</h2>
-      <p>
-        VPN ve NAT Kuralları, ağ trafiğini yönlendirmek, güvenli bağlantılar
-        sağlamak ve cihazların internet erişimini düzenlemek için kullanılan
-        yapılandırmalardır. VPN kuralları güvenli ve şifreli bağlantılar
-        oluştururken, NAT kuralları cihazların dış dünyayla iletişim kurmasını
-        veya dışarıdan erişilmesini sağlar.
-      </p>
-      <p>
-        <strong>Neden Kullanılır? </strong>ağ güvenliğini artırmak, cihazların
-        internete erişimini düzenlemek, uzaktan güvenli bağlantılar oluşturmak
-        ve iç ağ cihazlarının dış dünyayla iletişimini sağlamak için kullanılır.
-      </p>
+      <h2 style={{ color: "#D84040" }}>VPN ve NAT Kuralları</h2>
+      <p>VPN ve NAT Kuralları, ağ trafiğini yönlendirmek, güvenli bağlantılar sağlamak ve cihazların internet erişimini düzenlemek için kullanılan yapılandırmalardır. VPN kuralları güvenli ve şifreli bağlantılar oluştururken, NAT kuralları cihazların dış dünyayla iletişim kurmasını veya dışarıdan erişilmesini sağlar.</p>
+      <p><strong>Neden Kullanılır? </strong> Ağ güvenliğini artırmak, cihazların internete erişimini düzenlemek, uzaktan güvenli bağlantılar oluşturmak ve iç ağ cihazlarının dış dünyayla iletişimini sağlamak için kullanılır.</p>
 
       <div className="card p-4 mb-4 shadow-sm">
-        <h5>Kural Ekle</h5>
+        <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
           <div className="col-md-4">
             <label>Kaynak IP</label>
@@ -200,13 +167,17 @@ const VPNRules = () => {
           </div>
         </div>
         {requiredError && <small className="text-danger mt-2">{requiredError}</small>}
-        <button className="btn btn-success mt-3" onClick={handleAddRule}>
+        <button
+          className="btn mt-3"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleAddRule}
+        >
           Kural Ekle
         </button>
       </div>
 
       <div className="card p-4 shadow-sm">
-        <h5>Eklenen Kurallar</h5>
+        <h5 style={{ color: "#D84040" }}>Eklenen Kurallar</h5>
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, index) => (
@@ -219,7 +190,15 @@ const VPNRules = () => {
         ) : (<p>Henüz bir kural eklenmedi.</p>)}
       </div>
 
-      <button className="btn btn-success mt-4" onClick={handleSubmitToOpenWRT}>Firewall'a Gönder</button>
+      <div className="d-flex justify-content-end mt-4">
+        <button
+          className="btn"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleSubmitToOpenWRT}
+        >
+          Firewall'a Gönder
+        </button>
+      </div>
     </div>
   );
 };

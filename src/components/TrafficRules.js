@@ -54,7 +54,7 @@ const TrafficRules = () => {
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
-            <span style={{ color: "green", fontWeight: "bold" }}>
+            <span style={{ color: "#D84040", fontWeight: "bold" }}>
               Trafik Yönetimi Kullanımı
             </span>
           </Accordion.Header>
@@ -64,10 +64,10 @@ const TrafficRules = () => {
         </Accordion.Item>
       </Accordion>
 
-      <h2 className="text-success">Trafik Yönetimi</h2>
+      <h2 style={{ color: "#D84040" }}>Trafik Yönetimi</h2>
 
       <div className="card p-4 mb-4 shadow-sm">
-        <h5>Kural Ekle</h5>
+        <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
           <div className="col-md-4">
             <label>Kaynak IP</label>
@@ -129,13 +129,17 @@ const TrafficRules = () => {
           </div>
         </div>
         {error && <small className="text-danger mt-2">{error}</small>}
-        <button className="btn btn-success mt-3" onClick={handleAddRule}>
+        <button
+          className="btn mt-3"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleAddRule}
+        >
           Kural Ekle
         </button>
       </div>
 
       <div className="card p-4 shadow-sm">
-        <h5>Eklenen Kurallar</h5>
+        <h5 style={{ color: "#D84040" }}>Eklenen Kurallar</h5>
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, index) => (
@@ -161,7 +165,11 @@ const TrafficRules = () => {
       </div>
 
       <div className="d-flex justify-content-end mt-4">
-        <button className="btn btn-success" onClick={handleSubmitToFirewall}>
+        <button
+          className="btn"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleSubmitToFirewall}
+        >
           Firewall'a Gönder
         </button>
       </div>

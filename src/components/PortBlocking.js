@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendPortBlockingRules } from "../api"; // API çağrısı için import
+import { sendPortBlockingRules } from "../api";
 
 const PortBlocking = () => {
   const [rules, setRules] = useState([]);
@@ -15,17 +15,10 @@ const PortBlocking = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Port aralığı doğrulama
     if (name === "portRange") {
       const portRangeRegex = /^([0-9]{1,5})(-([0-9]{1,5}))?$/;
-
-      if (
-        !portRangeRegex.test(value) ||
-        value.split("-").some((p) => parseInt(p) > 65535)
-      ) {
-        setPortError(
-          "Port numarası 0-65535 arasında olmalıdır. Örnek: 80-100 veya 443"
-        );
+      if (!portRangeRegex.test(value) || value.split("-").some((p) => parseInt(p) > 65535)) {
+        setPortError("Port numarası 0-65535 arasında olmalıdır. Örnek: 80-100 veya 443");
       } else {
         setPortError("");
       }
@@ -35,7 +28,6 @@ const PortBlocking = () => {
   };
 
   const handleAddRule = () => {
-    // Zorunlu alan kontrolü
     if (!formData.portRange) {
       setRequiredError("Lütfen port aralığını girin.");
       return;
@@ -61,64 +53,49 @@ const PortBlocking = () => {
 
   const handleSubmitToOpenWRT = async () => {
     try {
-        await sendPortBlockingRules(rules); // API çağrısı, response değişkeni olmadan
-        alert("Port engelleme kuralları başarıyla gönderildi!");
+      await sendPortBlockingRules(rules);
+      alert("Port engelleme kuralları başarıyla gönderildi!");
     } catch (error) {
-        alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
+      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
     }
-};
-
+  };
 
   return (
     <div className="container mt-4">
-      {/* Bilgilendirme Accordion */}
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
-            <span style={{ color: "green", fontWeight: "bold" }}>
+            <span style={{ color: "#D84040", fontWeight: "bold" }}>
               Port Engelleme Kullanımı
             </span>
           </Accordion.Header>
           <Accordion.Body>
             <ul>
               <li>
-                <strong>Protokoller:</strong> Belirli bir protokol üzerinden
-                gelen veya giden trafiği engelleyebilirsiniz.
+                <strong>Protokoller:</strong> Belirli bir protokol üzerinden gelen veya giden trafiği engelleyebilirsiniz.
                 <ul>
-                  <li>
-                    <strong>TCP:</strong> Web tarayıcıları, e-posta gibi
-                    güvenilir bağlantılar için kullanılır.
-                  </li>
-                  <li>
-                    <strong>UDP:</strong> Canlı yayınlar ve oyunlar gibi hızlı
-                    bağlantılar için kullanılır.
-                  </li>
+                  <li><strong>TCP:</strong> Web tarayıcıları, e-posta gibi güvenilir bağlantılar için kullanılır.</li>
+                  <li><strong>UDP:</strong> Canlı yayınlar ve oyunlar gibi hızlı bağlantılar için kullanılır.</li>
                 </ul>
               </li>
               <li>
-                <strong>Port Aralığı:</strong> Engellenecek trafiğin port
-                numarasını veya aralığını belirtin.
-                <em>(Örnek: 80-100 veya 443)</em>
+                <strong>Port Aralığı:</strong> Engellenecek trafiğin port numarasını veya aralığını belirtin. <em>(Örnek: 80-100 veya 443)</em>
               </li>
             </ul>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
 
-      <h2 className="text-success">Port Engelleme</h2>
+      <h2 style={{ color: "#D84040" }}>Port Engelleme</h2>
       <p>
-        Port Engelleme, belirli bir port üzerinden gelen veya giden ağ trafiğini
-        durdurma işlemidir.
+        Port Engelleme, belirli bir port üzerinden gelen veya giden ağ trafiğini durdurma işlemidir.
       </p>
       <p>
-        <strong>Neden Kullanılır? </strong> güvenliği sağlamak, yetkisiz
-        erişimleri engellemek ve gereksiz trafiği durdurarak ağ performansını
-        artırmak için kullanılır.
+        <strong>Neden Kullanılır? </strong> güvenliği sağlamak, yetkisiz erişimleri engellemek ve gereksiz trafiği durdurarak ağ performansını artırmak için kullanılır.
       </p>
 
-      {/* Form */}
       <div className="card p-4 mb-4 shadow-sm">
-        <h5>Kural Ekle</h5>
+        <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
           <div className="col-md-4">
             <label>Protokol</label>
@@ -145,17 +122,18 @@ const PortBlocking = () => {
             {portError && <small className="text-danger">{portError}</small>}
           </div>
         </div>
-        {requiredError && (
-          <small className="text-danger mt-2">{requiredError}</small>
-        )}
-        <button className="btn btn-success mt-3" onClick={handleAddRule}>
+        {requiredError && <small className="text-danger mt-2">{requiredError}</small>}
+        <button
+          className="btn mt-3"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleAddRule}
+        >
           Engelle
         </button>
       </div>
 
-      {/* Kurallar Listesi */}
       <div className="card p-4 shadow-sm">
-        <h5>Eklenen Kurallar</h5>
+        <h5 style={{ color: "#D84040" }}>Eklenen Kurallar</h5>
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, index) => (
@@ -180,9 +158,12 @@ const PortBlocking = () => {
         )}
       </div>
 
-      {/* OpenWRT'ye Gönder */}
       <div className="d-flex justify-content-end mt-4">
-        <button className="btn btn-success" onClick={handleSubmitToOpenWRT}>
+        <button
+          className="btn"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleSubmitToOpenWRT}
+        >
           Firewall'a Gönder
         </button>
       </div>

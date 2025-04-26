@@ -3,7 +3,7 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f8f9fa;
+  background-color: #D84040;
   color: #333;
 }
 
@@ -17,10 +17,29 @@ button {
 }
 
 button:hover {
-  background-color: #28a745;
+  background-color: #D84040;
   color: white;
 }
 
 main {
   min-height: 300px;
+}
+
+/* YENİ EKLENDİ */
+.feature-card {
+  border: 1px solid #333;
+  border-radius: 10px;
+  transition: border-color 0.3s ease; /* Yumuşak geçiş efekti */
+}
+
+.feature-card:hover {
+  border-color: #D84040;
+}
+
+.feature-card .card-title {
+  color: #4b4b4b; /* Başlıklar normalde koyu gri kalacak */
+}
+
+.feature-card:hover .card-title {
+  color: #D84040; /* Üzerine gelince başlık rengi de kırmızı olacak */
 }

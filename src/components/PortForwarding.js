@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendPortForwardingRules } from "../api"; // 🔥 API entegrasyonu eklendi
+import { sendPortForwardingRules } from "../api";
 
 const PortForwarding = () => {
   const [rules, setRules] = useState([]);
@@ -19,26 +19,17 @@ const PortForwarding = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // IP adresi doğrulama
     if (name === "sourceIP" || name === "destinationIP") {
-      const ipRegex =
-        /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
-
+      const ipRegex = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
       if (!ipRegex.test(value) && value !== "") {
-        setIpError(
-          `${
-            name === "destinationIP" ? "Hedef" : "Kaynak"
-          } IP formatı hatalı! Örnek: 192.168.1.10`
-        );
+        setIpError(`${name === "destinationIP" ? "Hedef" : "Kaynak"} IP formatı hatalı! Örnek: 192.168.1.10`);
       } else {
         setIpError("");
       }
     }
 
-    // Port numarası doğrulama
     if (name === "sourcePort" || name === "destinationPort") {
       const portRegex = /^[0-9]{1,5}$/;
-
       if (!portRegex.test(value) || parseInt(value) > 65535) {
         setPortError("Port numarası 0-65535 arasında bir değer olmalıdır.");
       } else {
@@ -78,7 +69,7 @@ const PortForwarding = () => {
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      await sendPortForwardingRules(rules); // 🔥 API çağrısı
+      await sendPortForwardingRules(rules);
       alert("Port yönlendirme kuralları başarıyla gönderildi!");
     } catch (error) {
       alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
@@ -87,37 +78,31 @@ const PortForwarding = () => {
 
   return (
     <div className="container mt-4">
-      {/* Bilgilendirme Accordion */}
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
-            <span style={{ color: "green", fontWeight: "bold" }}>
-              Port Yönlendirme Kullanım
+            <span style={{ color: "#D84040", fontWeight: "bold" }}>
+              Port Yönlendirme Kullanımı
             </span>
           </Accordion.Header>
           <Accordion.Body>
             <ul>
               <li>
-                <strong>Kaynak IP (Opsiyonel):</strong> Trafiğin hangi IP
-                adresinden geleceğini belirtir. Belirtilmezse tüm dış IP'ler
-                kabul edilir.
-                <em>(Örnek: 192.168.1.10)</em>
+                <strong>Kaynak IP (Opsiyonel):</strong> Trafiğin hangi IP adresinden geleceğini belirtir. <em>(Örnek: 192.168.1.10)</em>
               </li>
               <li>
-                <strong>Hedef IP (Zorunlu):</strong> Trafiğin yönlendirileceği ağ
-                içindeki cihazın IP adresi.
+                <strong>Hedef IP (Zorunlu):</strong> Trafiğin yönlendirileceği ağ içindeki cihazın IP adresi.
               </li>
             </ul>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
 
-      <h2 className="text-success">Port Yönlendirme</h2>
+      <h2 style={{ color: "#D84040" }}>Port Yönlendirme</h2>
       <p>Port yönlendirme, ağ dışından gelen bağlantıları belirli cihazlara yönlendirir.</p>
 
-      {/* Form */}
       <div className="card p-4 mb-4 shadow-sm">
-        <h5>Kural Ekle</h5>
+        <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
           <div className="col-md-4">
             <label>Kaynak IP (Opsiyonel)</label>
@@ -177,21 +162,23 @@ const PortForwarding = () => {
           </div>
         </div>
         {requiredError && <small className="text-danger mt-2">{requiredError}</small>}
-        <button className="btn btn-success mt-3" onClick={handleAddRule}>
+        <button
+          className="btn mt-3"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleAddRule}
+        >
           Kural Ekle
         </button>
       </div>
 
-      {/* Kurallar Listesi */}
       <div className="card p-4 shadow-sm">
-        <h5>Eklenen Kurallar</h5>
+        <h5 style={{ color: "#D84040" }}>Eklenen Kurallar</h5>
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, index) => (
               <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                 <span>
-                  {rule.sourceIP || "Tüm IP'ler"}:{rule.sourcePort} →{" "}
-                  {rule.destinationIP}:{rule.destinationPort} ({rule.protocol})
+                  {rule.sourceIP || "Tüm IP'ler"}:{rule.sourcePort} → {rule.destinationIP}:{rule.destinationPort} ({rule.protocol})
                 </span>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDeleteRule(index)}>
                   Sil
@@ -204,9 +191,12 @@ const PortForwarding = () => {
         )}
       </div>
 
-      {/* OpenWRT'ye Gönder */}
       <div className="d-flex justify-content-end mt-4">
-        <button className="btn btn-success" onClick={handleSubmitToOpenWRT}>
+        <button
+          className="btn"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleSubmitToOpenWRT}
+        >
           Firewall'a Gönder
         </button>
       </div>

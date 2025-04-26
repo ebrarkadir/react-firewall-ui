@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendMACRules } from "../api"; // API çağrısı için fonksiyon
+import { sendMACRules } from "../api";
 
 const MACRules = () => {
   const [rules, setRules] = useState([]);
@@ -18,7 +18,6 @@ const MACRules = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // MAC adresi doğrulama
     if (name === "macAddress") {
       const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
       if (!macRegex.test(value) && value !== "") {
@@ -28,7 +27,6 @@ const MACRules = () => {
       }
     }
 
-    // Zaman doğrulama
     if (name === "startTime" || name === "endTime") {
       const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
       if (!timeRegex.test(value) && value !== "") {
@@ -81,34 +79,27 @@ const MACRules = () => {
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
-            <span style={{ color: "green", fontWeight: "bold" }}>
+            <span style={{ color: "#D84040", fontWeight: "bold" }}>
               MAC Adresi Bazlı Kurallar Kullanımı
             </span>
           </Accordion.Header>
           <Accordion.Body>
             <ul>
-              <li>
-                <strong>MAC Adresi:</strong> Kontrol etmek istediğiniz cihazın fiziksel adresidir.
-                <em>(Örnek: 00:1A:2B:3C:4D:5E)</em>
-              </li>
-              <li>
-                <strong>Zaman Bazlı Kurallar:</strong> Cihazın belirli saatler arasında ağa erişimini kontrol edebilirsiniz.
-              </li>
-              <li>
-                <strong>Kural Türü:</strong> Belirli bir cihaza erişim izni verme veya engelleme işlemi yapılabilir.
-              </li>
+              <li><strong>MAC Adresi:</strong> Cihazın fiziksel adresi. <em>(Örnek: 00:1A:2B:3C:4D:5E)</em></li>
+              <li><strong>Zaman Bazlı Kurallar:</strong> Belirli saatlerde ağa erişim kontrolü.</li>
+              <li><strong>Kural Türü:</strong> Erişim izni verme veya engelleme işlemleri.</li>
             </ul>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
 
-      <h2 className="text-success">MAC Adresi Bazlı Kurallar</h2>
+      <h2 style={{ color: "#D84040" }}>MAC Adresi Bazlı Kurallar</h2>
 
       <div className="card p-4 mb-4 shadow-sm">
-        <h5>Kural Ekle</h5>
+        <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
           <div className="col-md-4">
-            <label>MAC Adresi </label>
+            <label>MAC Adresi</label>
             <input
               type="text"
               className="form-control"
@@ -144,7 +135,7 @@ const MACRules = () => {
             {timeError && <small className="text-danger">{timeError}</small>}
           </div>
           <div className="col-md-4">
-            <label>Kural Türü </label>
+            <label>Kural Türü</label>
             <select
               className="form-select"
               name="action"
@@ -159,13 +150,17 @@ const MACRules = () => {
         {requiredError && (
           <small className="text-danger mt-2">{requiredError}</small>
         )}
-        <button className="btn btn-success mt-3" onClick={handleAddRule}>
+        <button
+          className="btn mt-3"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleAddRule}
+        >
           Kural Ekle
         </button>
       </div>
 
       <div className="card p-4 shadow-sm">
-        <h5>Eklenen Kurallar</h5>
+        <h5 style={{ color: "#D84040" }}>Eklenen Kurallar</h5>
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, index) => (
@@ -174,8 +169,7 @@ const MACRules = () => {
                 className="list-group-item d-flex justify-content-between align-items-center"
               >
                 <span>
-                  {rule.macAddress}, {rule.startTime || "Tüm Saatler"} -{" "}
-                  {rule.endTime || "Tüm Saatler"} - {rule.action === "allow" ? "İzin Ver" : "Engelle"}
+                  {rule.macAddress}, {rule.startTime || "Tüm Saatler"} - {rule.endTime || "Tüm Saatler"} - {rule.action === "allow" ? "İzin Ver" : "Engelle"}
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
@@ -192,7 +186,11 @@ const MACRules = () => {
       </div>
 
       <div className="d-flex justify-content-end mt-4">
-        <button className="btn btn-success" onClick={handleSubmitToOpenWRT}>
+        <button
+          className="btn"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleSubmitToOpenWRT}
+        >
           Firewall'a Gönder
         </button>
       </div>

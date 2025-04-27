@@ -17,7 +17,7 @@ button {
 }
 
 button:hover {
-  background-color: #D84040;
+  background-color: #f59595;
   color: white;
 }
 
@@ -33,7 +33,7 @@ main {
 }
 
 .feature-card:hover {
-  border-color: #D84040;
+  border-color: #f59595;
 }
 
 .feature-card .card-title {
@@ -41,5 +41,5 @@ main {
 }
 
 .feature-card:hover .card-title {
-  color: #D84040; /* Üzerine gelince başlık rengi de kırmızı olacak */
+  color: #f59595; /* Üzerine gelince başlık rengi de kırmızı olacak */
 }

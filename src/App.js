@@ -126,7 +126,7 @@ function App() {
       </main>
 
       <footer className="text-center py-3 mt-4 bg-light">
-        <p>&copy; ShieldWRT</p>
+        <p>&copy; ShieldWRT by Ebrar Kadir Çetin</p>
       </footer>
     </div>
   );

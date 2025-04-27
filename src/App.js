@@ -23,7 +23,7 @@ function App() {
               Hoş Geldiniz!
             </h2>
             <p className="lead mb-5">
-              <strong>ShieldWRT</strong>, ağ güvenliğinizi sağlamak için
+              <strong style={{color:"#D84040"}}>ShieldWRT</strong>, ağ güvenliğinizi sağlamak için
               kullanıcı dostu bir <em>OpenWRT tabanlı firewall</em> yönetim arayüzüdür.
               Güçlü özellikleri keşfedin ve internet trafiğinizi kontrol altına alın!
             </p>
@@ -103,7 +103,7 @@ function App() {
           alt="ShieldWRT Logo"
           style={{ width: "100px", height: "100px", marginBottom: "10px" }}
         />
-        <h1 className="m-0">ShieldWRT</h1>
+        <h1 className="m-0" style={{ color: '#F8F2DE' }}>ShieldWRT</h1>
       </header>
 
       <nav className="bg-light py-3 shadow">

@@ -11,7 +11,6 @@ const QoSRules = () => {
   });
 
   const [macError, setMacError] = useState("");
-  const [bandwidthError, setBandwidthError] = useState("");
   const [requiredError, setRequiredError] = useState("");
 
   const handleInputChange = (e) => {
@@ -26,15 +25,6 @@ const QoSRules = () => {
       }
     }
 
-    if (name === "bandwidthLimit") {
-      const bandwidthRegex = /^[0-9]+$/;
-      if (!bandwidthRegex.test(value) && value !== "") {
-        setBandwidthError("Bant genişliği yalnızca sayı olmalıdır. Örnek: 100 (KB/s)");
-      } else {
-        setBandwidthError("");
-      }
-    }
-
     setFormData({ ...formData, [name]: value });
   };
 
@@ -44,7 +34,7 @@ const QoSRules = () => {
       return;
     }
 
-    if (macError || bandwidthError) {
+    if (macError) {
       alert("Lütfen formdaki hataları düzeltin.");
       return;
     }
@@ -61,7 +51,13 @@ const QoSRules = () => {
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      await sendQoSRules(rules);
+      const formattedRules = rules.map((rule) => ({
+        macAddress: rule.macAddress.toLowerCase(),
+        priority: rule.priority,
+        bandwidthLimit: rule.bandwidthLimit || "",
+      }));
+
+      await sendQoSRules(formattedRules);
       alert("Trafik önceliklendirme (QoS) kuralları başarıyla gönderildi!");
     } catch (error) {
       alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
@@ -86,7 +82,7 @@ const QoSRules = () => {
                 <strong>Öncelik Seviyesi:</strong> Trafiğe düşük, orta veya yüksek öncelik verilebilir.
               </li>
               <li>
-                <strong>Bant Genişliği:</strong> Cihazın veri aktarım hızını sınırlandırabilirsiniz. <em>(Örnek: 100 KB/s)</em>
+                <strong>Bant Genişliği:</strong> Cihazın veri aktarım hızını sınırlandırabilirsiniz. <em>(Örnek: 4 MB/s = 32 Mbit)</em>
               </li>
             </ul>
           </Accordion.Body>
@@ -94,7 +90,9 @@ const QoSRules = () => {
       </Accordion>
 
       <h2 style={{ color: "#D84040" }}>Trafik Önceliklendirme (QoS)</h2>
-      <p>Trafik Önceliklendirme (QoS), ağdaki kritik cihazlara veya uygulamalara öncelik tanıyarak ağ performansını artırır ve kaynakları verimli kullanmayı sağlar.</p>
+      <p>
+        Trafik Önceliklendirme (QoS), ağdaki kritik cihazlara veya uygulamalara öncelik tanıyarak ağ performansını artırır ve kaynakları verimli kullanmayı sağlar.
+      </p>
 
       <div className="card p-4 mb-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
@@ -126,15 +124,20 @@ const QoSRules = () => {
           </div>
           <div className="col-md-4">
             <label>Bant Genişliği (Opsiyonel)</label>
-            <input
-              type="text"
-              className="form-control"
+            <select
+              className="form-select"
               name="bandwidthLimit"
               value={formData.bandwidthLimit}
               onChange={handleInputChange}
-              placeholder="Ör: 100 (KB/s)"
-            />
-            {bandwidthError && <small className="text-danger">{bandwidthError}</small>}
+            >
+              <option value="">Seçiniz (Varsayılan)</option>
+              <option value="512kbit">512 KB/s (≈4 Mbit)</option>
+              <option value="1024kbit">1 MB/s (≈8 Mbit)</option>
+              <option value="2048kbit">2 MB/s (≈16 Mbit)</option>
+              <option value="4096kbit">4 MB/s (≈32 Mbit)</option>
+              <option value="8192kbit">8 MB/s (≈64 Mbit)</option>
+              <option value="10240kbit">10 MB/s (≈80 Mbit)</option>
+            </select>
           </div>
         </div>
         {requiredError && <small className="text-danger mt-2">{requiredError}</small>}
@@ -157,8 +160,16 @@ const QoSRules = () => {
                 className="list-group-item d-flex justify-content-between align-items-center"
               >
                 <span>
-                  {rule.macAddress}, Öncelik: {rule.priority === "low" ? "Düşük" : rule.priority === "medium" ? "Orta" : "Yüksek"}
-                  , {rule.bandwidthLimit ? `Bant: ${rule.bandwidthLimit} KB/s` : "Bant Sınırı Yok"}
+                  {rule.macAddress}, Öncelik:{" "}
+                  {rule.priority === "low"
+                    ? "Düşük"
+                    : rule.priority === "medium"
+                    ? "Orta"
+                    : "Yüksek"}
+                  ,{" "}
+                  {rule.bandwidthLimit
+                    ? `Bant: ${parseInt(rule.bandwidthLimit) / 8} KB/s`
+                    : "Bant Sınırı Yok"}
                 </span>
                 <button
                   className="btn btn-danger btn-sm"

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendFirewallRules } from "../api";
+import { sendFirewallRules, getFirewallRules, deleteFirewallRule } from "../api";
 
 const TrafficRules = () => {
+  const [pendingRules, setPendingRules] = useState([]);
   const [rules, setRules] = useState([]);
   const [formData, setFormData] = useState({
     sourceIP: "",
@@ -11,8 +12,21 @@ const TrafficRules = () => {
     portRange: "",
     action: "allow",
   });
-  
+
   const [error, setError] = useState("");
+
+  const fetchExistingRules = async () => {
+    try {
+      const response = await getFirewallRules();
+      setRules(response);
+    } catch (err) {
+      console.error("Kurallar alınamadı:", err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchExistingRules();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -20,12 +34,20 @@ const TrafficRules = () => {
   };
 
   const handleAddRule = () => {
+    const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
     if (!formData.sourceIP || !formData.destinationIP || !formData.portRange) {
       setError("Lütfen tüm zorunlu alanları doldurun.");
       return;
     }
+
+    if (!ipRegex.test(formData.sourceIP) || !ipRegex.test(formData.destinationIP)) {
+      setError("Geçerli bir IP adresi girin.");
+      return;
+    }
+
     setError("");
-    setRules([...rules, formData]);
+    setPendingRules([...pendingRules, formData]);
     setFormData({
       sourceIP: "",
       destinationIP: "",
@@ -35,17 +57,35 @@ const TrafficRules = () => {
     });
   };
 
-  const handleDeleteRule = (index) => {
-    const updatedRules = rules.filter((_, i) => i !== index);
-    setRules(updatedRules);
+  const handleDeletePendingRule = (index) => {
+    const updated = pendingRules.filter((_, i) => i !== index);
+    setPendingRules(updated);
+  };
+
+  const handleDeleteSentRule = async (uciKey) => {
+    try {
+      await deleteFirewallRule(uciKey);
+      await fetchExistingRules();
+      alert("Kural başarıyla silindi!");
+    } catch (err) {
+      alert("Kural silinemedi: " + err.message);
+    }
   };
 
   const handleSubmitToFirewall = async () => {
     try {
-      await sendFirewallRules(rules);
+      const normalizedRules = pendingRules.map((rule) => ({
+        ...rule,
+        protocol: rule.protocol.toLowerCase(),
+        action: rule.action.toLowerCase(),
+      }));
+
+      await sendFirewallRules(normalizedRules);
+      setPendingRules([]);
+      await fetchExistingRules();
       alert("Kurallar başarıyla gönderildi!");
-    } catch (error) {
-      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
+    } catch (err) {
+      alert("Gönderme hatası: " + err.message);
     }
   };
 
@@ -59,13 +99,17 @@ const TrafficRules = () => {
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <p>Burada trafik kurallarını belirleyebilirsiniz.</p>
+            <p>
+              Eklemek istediğiniz kuralları oluşturun. Ardından 'Firewall'a Gönder'
+              butonuna basarak kuralları OpenWRT cihazına aktarın.
+            </p>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
 
       <h2 style={{ color: "#D84040" }}>Trafik Yönetimi</h2>
 
+      {/* FORM */}
       <div className="card p-4 mb-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
@@ -134,44 +178,51 @@ const TrafficRules = () => {
           style={{ backgroundColor: "#D84040", color: "white" }}
           onClick={handleAddRule}
         >
-          Kural Ekle
+          Kuralı Ekle
         </button>
       </div>
 
+      {/* PENDING RULES */}
+      <div className="card p-4 shadow-sm mb-4">
+        <h5 style={{ color: "#D84040" }}>🚧 Eklenecek Kurallar</h5>
+        {pendingRules.length > 0 ? (
+          <ul className="list-group">
+            {pendingRules.map((rule, index) => (
+              <li key={index} className="list-group-item d-flex justify-content-between">
+                <span>{rule.sourceIP} → {rule.destinationIP} ({rule.protocol}, {rule.portRange}) - {rule.action === "allow" ? "İzin Ver" : "Engelle"}</span>
+                <button className="btn btn-danger btn-sm" onClick={() => handleDeletePendingRule(index)}>Sil</button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Henüz eklemeye hazır bir kural yok.</p>
+        )}
+        {pendingRules.length > 0 && (
+          <div className="d-flex justify-content-end mt-3">
+            <button className="btn btn-success" onClick={handleSubmitToFirewall}>
+              Firewall'a Gönder
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* EXISTING RULES */}
       <div className="card p-4 shadow-sm">
-        <h5 style={{ color: "#D84040" }}>Eklenen Kurallar</h5>
+        <h5 style={{ color: "#D84040" }}>🔥 Eklenen (Aktif) Kurallar</h5>
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, index) => (
-              <li
-                key={index}
-                className="list-group-item d-flex justify-content-between align-items-center"
-              >
-                <span>
-                  {rule.sourceIP} → {rule.destinationIP} ({rule.protocol}, {rule.portRange}) - {rule.action === "allow" ? "İzin Ver" : "Engelle"}
-                </span>
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleDeleteRule(index)}
-                >
+              <li key={index} className="list-group-item d-flex justify-content-between">
+                <span>{rule.src_ip} → {rule.dest_ip} ({rule.proto}, {rule.dest_port}) - {rule.target === "ACCEPT" ? "İzin Ver" : "Engelle"}</span>
+                <button className="btn btn-danger btn-sm" onClick={() => handleDeleteSentRule(rule.uciKey)}>
                   Sil
                 </button>
               </li>
             ))}
           </ul>
         ) : (
-          <p>Henüz bir kural eklenmedi.</p>
+          <p>OpenWRT üzerinde aktif trafik kuralı yok.</p>
         )}
-      </div>
-
-      <div className="d-flex justify-content-end mt-4">
-        <button
-          className="btn"
-          style={{ backgroundColor: "#D84040", color: "white" }}
-          onClick={handleSubmitToFirewall}
-        >
-          Firewall'a Gönder
-        </button>
       </div>
     </div>
   );

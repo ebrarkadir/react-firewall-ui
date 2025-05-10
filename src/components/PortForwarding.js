@@ -90,23 +90,24 @@ const PortForwarding = () => {
     setPendingRules(pendingRules.filter((_, i) => i !== index));
   };
 
-  const handleDeleteSentRule = async (uciKey) => {
-    try {
-      await deletePortForwardingRule(uciKey);
-      await fetchExistingRules(); // Sayfayı yenilemeden güncelle
-    } catch (err) {
-      alert("Silme hatası: " + err.message);
-    }
-  };
-
   const handleSubmitToOpenWRT = async () => {
     try {
       await sendPortForwardingRules(pendingRules);
       setPendingRules([]);
-      await fetchExistingRules();
+      setTimeout(fetchExistingRules, 1000); // ✅ Güncelleme
       alert("Port yönlendirme kuralları gönderildi!");
     } catch (error) {
       alert("Gönderme hatası: " + error.message);
+    }
+  };
+  
+  const handleDeleteSentRule = async (uciKey) => {
+    try {
+      await deletePortForwardingRule(uciKey);
+      setTimeout(fetchExistingRules, 1000); // ✅ Güncelleme
+      alert("Kural silindi!");
+    } catch (err) {
+      alert("Silme hatası: " + err.message);
     }
   };
 

@@ -1,8 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendPortBlockingRules } from "../api";
+import {
+  sendPortBlockingRules,
+  getPortBlockingRules,
+  deletePortBlockingRule,
+} from "../api";
 
 const PortBlocking = () => {
+  const [pendingRules, setPendingRules] = useState([]);
   const [rules, setRules] = useState([]);
   const [formData, setFormData] = useState({
     protocol: "TCP",
@@ -12,13 +17,31 @@ const PortBlocking = () => {
   const [portError, setPortError] = useState("");
   const [requiredError, setRequiredError] = useState("");
 
+  const fetchExistingRules = async () => {
+    try {
+      const response = await getPortBlockingRules();
+      setRules(response);
+    } catch (err) {
+      console.error("Port engelleme kuralları alınamadı:", err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchExistingRules();
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "portRange") {
       const portRangeRegex = /^([0-9]{1,5})(-([0-9]{1,5}))?$/;
-      if (!portRangeRegex.test(value) || value.split("-").some((p) => parseInt(p) > 65535)) {
-        setPortError("Port numarası 0-65535 arasında olmalıdır. Örnek: 80-100 veya 443");
+      if (
+        !portRangeRegex.test(value) ||
+        value.split("-").some((p) => parseInt(p) > 65535)
+      ) {
+        setPortError(
+          "Port numarası 0-65535 arasında olmalıdır. Örnek: 80-100 veya 443"
+        );
       } else {
         setPortError("");
       }
@@ -39,21 +62,29 @@ const PortBlocking = () => {
     }
 
     setRequiredError("");
-    setRules([...rules, formData]);
-    setFormData({
-      protocol: "TCP",
-      portRange: "",
-    });
+    setPendingRules([...pendingRules, formData]);
+    setFormData({ protocol: "TCP", portRange: "" });
   };
 
-  const handleDeleteRule = (index) => {
-    const updatedRules = rules.filter((_, i) => i !== index);
-    setRules(updatedRules);
+  const handleDeletePendingRule = (index) => {
+    const updated = pendingRules.filter((_, i) => i !== index);
+    setPendingRules(updated);
+  };
+
+  const handleDeleteSentRule = async (uciKey) => {
+    try {
+      await deletePortBlockingRule(uciKey);
+      setTimeout(fetchExistingRules, 1500); // 🔁 Güncelle
+    } catch (err) {
+      alert("Silme hatası: " + err.message);
+    }
   };
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      await sendPortBlockingRules(rules);
+      await sendPortBlockingRules(pendingRules);
+      setPendingRules([]);
+      setTimeout(fetchExistingRules, 1500); // 🔁 Güncelleme gecikmeli
       alert("Port engelleme kuralları başarıyla gönderildi!");
     } catch (error) {
       alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
@@ -72,14 +103,12 @@ const PortBlocking = () => {
           <Accordion.Body>
             <ul>
               <li>
-                <strong>Protokoller:</strong> Belirli bir protokol üzerinden gelen veya giden trafiği engelleyebilirsiniz.
-                <ul>
-                  <li><strong>TCP:</strong> Web tarayıcıları, e-posta gibi güvenilir bağlantılar için kullanılır.</li>
-                  <li><strong>UDP:</strong> Canlı yayınlar ve oyunlar gibi hızlı bağlantılar için kullanılır.</li>
-                </ul>
+                <strong>Protokoller:</strong> Belirli bir protokol üzerinden
+                gelen veya giden trafiği engelleyebilirsiniz.
               </li>
               <li>
-                <strong>Port Aralığı:</strong> Engellenecek trafiğin port numarasını veya aralığını belirtin. <em>(Örnek: 80-100 veya 443)</em>
+                <strong>Port Aralığı:</strong> Engellenecek port numarası veya
+                aralığı. <em>Örnek: 80-100 veya 443</em>
               </li>
             </ul>
           </Accordion.Body>
@@ -87,13 +116,8 @@ const PortBlocking = () => {
       </Accordion>
 
       <h2 style={{ color: "#D84040" }}>Port Engelleme</h2>
-      <p>
-        Port Engelleme, belirli bir port üzerinden gelen veya giden ağ trafiğini durdurma işlemidir.
-      </p>
-      <p>
-        <strong>Neden Kullanılır? </strong> güvenliği sağlamak, yetkisiz erişimleri engellemek ve gereksiz trafiği durdurarak ağ performansını artırmak için kullanılır.
-      </p>
 
+      {/* FORM */}
       <div className="card p-4 mb-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
@@ -122,7 +146,9 @@ const PortBlocking = () => {
             {portError && <small className="text-danger">{portError}</small>}
           </div>
         </div>
-        {requiredError && <small className="text-danger mt-2">{requiredError}</small>}
+        {requiredError && (
+          <small className="text-danger mt-2">{requiredError}</small>
+        )}
         <button
           className="btn mt-3"
           style={{ backgroundColor: "#D84040", color: "white" }}
@@ -132,8 +158,47 @@ const PortBlocking = () => {
         </button>
       </div>
 
+      {/* BEKLEYENLER */}
+      <div className="card p-4 shadow-sm mb-4">
+        <h5 style={{ color: "#D84040" }}>🚧 Eklenecek Kurallar</h5>
+        {pendingRules.length > 0 ? (
+          <ul className="list-group">
+            {pendingRules.map((rule, i) => (
+              <li
+                key={i}
+                className="list-group-item d-flex justify-content-between"
+              >
+                <span>
+                  {rule.protocol} Port: {rule.portRange} - Engelle
+                </span>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeletePendingRule(i)}
+                >
+                  Sil
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Henüz bekleyen kural yok.</p>
+        )}
+        {pendingRules.length > 0 && (
+          <div className="d-flex justify-content-end mt-3">
+            <button
+              className="btn"
+              style={{ backgroundColor: "#D84040", color: "white" }}
+              onClick={handleSubmitToOpenWRT}
+            >
+              Firewall'a Gönder
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* AKTİF KURALLAR */}
       <div className="card p-4 shadow-sm">
-        <h5 style={{ color: "#D84040" }}>Eklenen Kurallar</h5>
+        <h5 style={{ color: "#D84040" }}>🔥 Eklenen (Aktif) Kurallar</h5>
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, index) => (
@@ -142,11 +207,12 @@ const PortBlocking = () => {
                 className="list-group-item d-flex justify-content-between align-items-center"
               >
                 <span>
-                  {rule.protocol} Port: {rule.portRange} - Engelle
+                  {rule.proto} Port: {rule.dest_port} - Engelle [
+                  {rule.name.includes("wan") ? "WAN" : "LAN"}]
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
-                  onClick={() => handleDeleteRule(index)}
+                  onClick={() => handleDeleteSentRule(rule.uciKey)}
                 >
                   Sil
                 </button>
@@ -154,18 +220,8 @@ const PortBlocking = () => {
             ))}
           </ul>
         ) : (
-          <p>Henüz bir kural eklenmedi.</p>
+          <p>Firewall'da aktif port engelleme kuralı yok.</p>
         )}
-      </div>
-
-      <div className="d-flex justify-content-end mt-4">
-        <button
-          className="btn"
-          style={{ backgroundColor: "#D84040", color: "white" }}
-          onClick={handleSubmitToOpenWRT}
-        >
-          Firewall'a Gönder
-        </button>
       </div>
     </div>
   );

@@ -1,8 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendPortForwardingRules } from "../api";
+import {
+  sendPortForwardingRules,
+  getPortForwardingRules,
+  deletePortForwardingRule,
+} from "../api";
 
 const PortForwarding = () => {
+  const [pendingRules, setPendingRules] = useState([]);
   const [rules, setRules] = useState([]);
   const [formData, setFormData] = useState({
     sourceIP: "",
@@ -16,22 +21,37 @@ const PortForwarding = () => {
   const [portError, setPortError] = useState("");
   const [requiredError, setRequiredError] = useState("");
 
+  const fetchExistingRules = async () => {
+    try {
+      const response = await getPortForwardingRules();
+      setRules(response);
+    } catch (err) {
+      console.error("Port yönlendirme kuralları alınamadı:", err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchExistingRules();
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === "sourceIP" || name === "destinationIP") {
-      const ipRegex = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
+    if (["sourceIP", "destinationIP"].includes(name)) {
+      const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$|^0\.0\.0\.0\/0$/;
       if (!ipRegex.test(value) && value !== "") {
-        setIpError(`${name === "destinationIP" ? "Hedef" : "Kaynak"} IP formatı hatalı! Örnek: 192.168.1.10`);
+        setIpError(
+          `${name === "destinationIP" ? "Hedef" : "Kaynak"} IP formatı hatalı!`
+        );
       } else {
         setIpError("");
       }
     }
 
-    if (name === "sourcePort" || name === "destinationPort") {
+    if (["sourcePort", "destinationPort"].includes(name)) {
       const portRegex = /^[0-9]{1,5}$/;
       if (!portRegex.test(value) || parseInt(value) > 65535) {
-        setPortError("Port numarası 0-65535 arasında bir değer olmalıdır.");
+        setPortError("Port 0-65535 arasında olmalı.");
       } else {
         setPortError("");
       }
@@ -41,18 +61,21 @@ const PortForwarding = () => {
   };
 
   const handleAddRule = () => {
-    if (!formData.destinationIP || !formData.sourcePort || !formData.destinationPort) {
-      setRequiredError("Lütfen tüm zorunlu alanları doldurun.");
+    if (
+      !formData.destinationIP ||
+      !formData.sourcePort ||
+      !formData.destinationPort
+    ) {
+      setRequiredError("Tüm zorunlu alanları doldurun.");
       return;
     }
 
     if (ipError || portError) {
-      alert("Lütfen formdaki hataları düzeltin.");
+      alert("Hatalı alanlar var!");
       return;
     }
 
-    setRequiredError("");
-    setRules([...rules, formData]);
+    setPendingRules([...pendingRules, formData]);
     setFormData({
       sourceIP: "",
       destinationIP: "",
@@ -60,19 +83,30 @@ const PortForwarding = () => {
       sourcePort: "",
       destinationPort: "",
     });
+    setRequiredError("");
   };
 
-  const handleDeleteRule = (index) => {
-    const updatedRules = rules.filter((_, i) => i !== index);
-    setRules(updatedRules);
+  const handleDeletePendingRule = (index) => {
+    setPendingRules(pendingRules.filter((_, i) => i !== index));
+  };
+
+  const handleDeleteSentRule = async (uciKey) => {
+    try {
+      await deletePortForwardingRule(uciKey);
+      await fetchExistingRules(); // Sayfayı yenilemeden güncelle
+    } catch (err) {
+      alert("Silme hatası: " + err.message);
+    }
   };
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      await sendPortForwardingRules(rules);
-      alert("Port yönlendirme kuralları başarıyla gönderildi!");
+      await sendPortForwardingRules(pendingRules);
+      setPendingRules([]);
+      await fetchExistingRules();
+      alert("Port yönlendirme kuralları gönderildi!");
     } catch (error) {
-      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
+      alert("Gönderme hatası: " + error.message);
     }
   };
 
@@ -86,21 +120,17 @@ const PortForwarding = () => {
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <ul>
-              <li>
-                <strong>Kaynak IP (Opsiyonel):</strong> Trafiğin hangi IP adresinden geleceğini belirtir. <em>(Örnek: 192.168.1.10)</em>
-              </li>
-              <li>
-                <strong>Hedef IP (Zorunlu):</strong> Trafiğin yönlendirileceği ağ içindeki cihazın IP adresi.
-              </li>
-            </ul>
+            <p>
+              Dış ağdan gelen trafiği belirtilen cihaza yönlendirmek için
+              kuralları tanımlayın.
+            </p>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
 
       <h2 style={{ color: "#D84040" }}>Port Yönlendirme</h2>
-      <p>Port yönlendirme, ağ dışından gelen bağlantıları belirli cihazlara yönlendirir.</p>
 
+      {/* FORM */}
       <div className="card p-4 mb-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
@@ -112,7 +142,7 @@ const PortForwarding = () => {
               name="sourceIP"
               value={formData.sourceIP}
               onChange={handleInputChange}
-              placeholder="Ör: 192.168.1.10"
+              placeholder="192.168.1.10"
             />
           </div>
           <div className="col-md-4">
@@ -123,7 +153,7 @@ const PortForwarding = () => {
               name="destinationIP"
               value={formData.destinationIP}
               onChange={handleInputChange}
-              placeholder="Ör: 192.168.1.20"
+              placeholder="192.168.1.20"
             />
           </div>
           <div className="col-md-4">
@@ -146,7 +176,7 @@ const PortForwarding = () => {
               name="sourcePort"
               value={formData.sourcePort}
               onChange={handleInputChange}
-              placeholder="Ör: 80"
+              placeholder="80"
             />
           </div>
           <div className="col-md-4">
@@ -157,48 +187,90 @@ const PortForwarding = () => {
               name="destinationPort"
               value={formData.destinationPort}
               onChange={handleInputChange}
-              placeholder="Ör: 8080"
+              placeholder="8080"
             />
           </div>
         </div>
-        {requiredError && <small className="text-danger mt-2">{requiredError}</small>}
+        {requiredError && (
+          <small className="text-danger">{requiredError}</small>
+        )}
         <button
           className="btn mt-3"
           style={{ backgroundColor: "#D84040", color: "white" }}
           onClick={handleAddRule}
         >
-          Kural Ekle
+          Kuralı Ekle
         </button>
       </div>
 
-      <div className="card p-4 shadow-sm">
-        <h5 style={{ color: "#D84040" }}>Eklenen Kurallar</h5>
-        {rules.length > 0 ? (
+      {/* PENDING */}
+      <div className="card p-4 shadow-sm mb-4">
+        <h5 style={{ color: "#D84040" }}>🚧 Eklenecek Kurallar</h5>
+        {pendingRules.length > 0 ? (
           <ul className="list-group">
-            {rules.map((rule, index) => (
-              <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+            {pendingRules.map((rule, i) => (
+              <li
+                key={i}
+                className="list-group-item d-flex justify-content-between"
+              >
                 <span>
-                  {rule.sourceIP || "Tüm IP'ler"}:{rule.sourcePort} → {rule.destinationIP}:{rule.destinationPort} ({rule.protocol})
+                  {rule.sourceIP || "Tüm IP'ler"}:{rule.sourcePort} →{" "}
+                  {rule.destinationIP}:{rule.destinationPort} ({rule.protocol})
                 </span>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDeleteRule(index)}>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeletePendingRule(i)}
+                >
                   Sil
                 </button>
               </li>
             ))}
           </ul>
         ) : (
-          <p>Henüz bir kural eklenmedi.</p>
+          <p>Henüz bekleyen kural yok.</p>
+        )}
+        {pendingRules.length > 0 && (
+          <div className="d-flex justify-content-end mt-3">
+            <button
+              className="btn"
+              style={{ backgroundColor: "#D84040", color: "white" }}
+              onClick={handleSubmitToOpenWRT}
+            >
+              Firewall'a Gönder
+            </button>
+          </div>
         )}
       </div>
 
-      <div className="d-flex justify-content-end mt-4">
-        <button
-          className="btn"
-          style={{ backgroundColor: "#D84040", color: "white" }}
-          onClick={handleSubmitToOpenWRT}
-        >
-          Firewall'a Gönder
-        </button>
+      {/* EXISTING */}
+      <div className="card p-4 shadow-sm">
+        <h5 style={{ color: "#D84040" }}>🔥 Eklenen (Aktif) Kurallar</h5>
+        {rules.length > 0 ? (
+          <ul className="list-group">
+            {rules.map((rule, i) => (
+              <li
+                key={i}
+                className="list-group-item d-flex justify-content-between"
+              >
+                <span>
+                  {(rule.src_ip || "Tüm IP'ler") +
+                    ":" +
+                    (rule.src_dport || "-")}{" "}
+                  → {rule.dest_ip}:{rule.dest_port} ({rule.proto}) [
+                  {rule.name.includes("wan") ? "WAN" : "LAN"}]
+                </span>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeleteSentRule(rule.uciKey)}
+                >
+                  Sil
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Firewall'da aktif port yönlendirme kuralı yok.</p>
+        )}
       </div>
     </div>
   );

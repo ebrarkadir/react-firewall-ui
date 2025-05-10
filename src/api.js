@@ -1,23 +1,21 @@
 const API_BASE_URL = "http://localhost:5000"; // API adresi
 
-// 🔥 1. Trafik Yönetimi Kuralları
+// 🔥 1. Trafik Yönetimi - POST
 export const sendFirewallRules = async (rules) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/firewall/rules`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rules }),
     });
-
     return await response.json();
   } catch (error) {
     console.error("🔥 Firewall API Hatası:", error);
     throw error;
   }
 };
-// 🔍 9. Trafik Yönetimi - Mevcut Kuralları GET ile çek
+
+// 🔍 1. Trafik Yönetimi - GET
 export const getFirewallRules = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/firewall/rules`, {
@@ -30,15 +28,12 @@ export const getFirewallRules = async () => {
   }
 };
 
-// ❌ 10. Trafik Yönetimi - Belirli Kuralı DELETE ile sil
+// ❌ 1. Trafik Yönetimi - DELETE
 export const deleteFirewallRule = async (uciKey) => {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/firewall/rules/${uciKey}`,
-      {
-        method: "DELETE",
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/api/firewall/rules/${uciKey}`, {
+      method: "DELETE",
+    });
     return await response.json();
   } catch (error) {
     console.error("🔥 Firewall DELETE Hatası:", error);
@@ -46,17 +41,14 @@ export const deleteFirewallRule = async (uciKey) => {
   }
 };
 
-// 🔥 2. Port Yönlendirme Kuralları
+// 🔥 2. Port Yönlendirme - POST
 export const sendPortForwardingRules = async (rules) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/portforwarding/rules`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rules }),
     });
-
     return await response.json();
   } catch (error) {
     console.error("🔥 Port Forwarding API Hatası:", error);
@@ -64,17 +56,40 @@ export const sendPortForwardingRules = async (rules) => {
   }
 };
 
-// 🔥 3. Port Engelleme Kuralları
+// 🔍 2. Port Yönlendirme - GET
+export const getPortForwardingRules = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/portforwarding/rules`, {
+      method: "GET",
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("🔥 Port Forwarding GET Hatası:", error);
+    throw error;
+  }
+};
+
+// ❌ 2. Port Yönlendirme - DELETE
+export const deletePortForwardingRule = async (uciKey) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/portforwarding/rules/${uciKey}`, {
+      method: "DELETE",
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("🔥 Port Forwarding DELETE Hatası:", error);
+    throw error;
+  }
+};
+
+// 🔥 3. Port Engelleme
 export const sendPortBlockingRules = async (rules) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/portblocking/rules`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rules }),
     });
-
     return await response.json();
   } catch (error) {
     console.error("🔥 Port Blocking API Hatası:", error);
@@ -87,12 +102,9 @@ export const sendMACRules = async (rules) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/macrouting/rules`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rules }),
     });
-
     return await response.json();
   } catch (error) {
     console.error("🔥 MAC Rules API Hatası:", error);
@@ -100,17 +112,14 @@ export const sendMACRules = async (rules) => {
   }
 };
 
-// 🔥 5. DNS Engelleme Kuralları
+// 🔥 5. DNS Engelleme
 export const sendDNSBlockingRules = async (rules) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/dnsblocking/rules`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rules }),
     });
-
     return await response.json();
   } catch (error) {
     console.error("🔥 DNS Blocking API Hatası:", error);
@@ -118,17 +127,14 @@ export const sendDNSBlockingRules = async (rules) => {
   }
 };
 
-// 🔥 6. Trafik Önceliklendirme (QoS) Kuralları
+// 🔥 6. QoS Kuralları
 export const sendQoSRules = async (rules) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/qos/rules`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rules }),
     });
-
     return await response.json();
   } catch (error) {
     console.error("🔥 QoS API Hatası:", error);
@@ -136,17 +142,14 @@ export const sendQoSRules = async (rules) => {
   }
 };
 
-// 🔥 7. VPN ve NAT Kuralları
+// 🔥 7. VPN/NAT Kuralları
 export const sendVPNRules = async (rules) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/vpn-nat/rules`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rules }),
     });
-
     return await response.json();
   } catch (error) {
     console.error("🔥 VPN/NAT API Hatası:", error);
@@ -154,30 +157,22 @@ export const sendVPNRules = async (rules) => {
   }
 };
 
-// 🔥 8. Zaman Bazlı Trafik Yönetimi Kuralları
+// 🔥 8. Zaman Bazlı Kurallar
 export const sendTimeBasedRules = async (rules) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/timebased/rules`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rules }),
     });
 
-    // Yanıtın JSON formatında olup olmadığını kontrol et
     const textResponse = await response.text();
-    console.log("🔥 Time-Based API Yanıtı (Text):", textResponse);
-
     if (!textResponse.trim()) {
-      throw new Error(
-        "Boş yanıt döndü! API, geçerli bir JSON yanıtı vermiyor."
-      );
+      throw new Error("Boş yanıt döndü! API geçerli bir JSON vermedi.");
     }
-
     return JSON.parse(textResponse);
   } catch (error) {
-    console.error("🔥 Time-Based Rules API Hatası:", error);
+    console.error("🔥 Time-Based API Hatası:", error);
     throw error;
   }
 };

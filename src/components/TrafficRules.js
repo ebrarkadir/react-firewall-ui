@@ -39,10 +39,13 @@ const TrafficRules = () => {
 
   const handleAddRule = () => {
     const ipRegex =
-      /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+      /^(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)\.(25[0-5]|2[0-4]\d|[01]?\d\d?)(\/([0-9]|[1-2][0-9]|3[0-2]))?$/;
 
-    if (!formData.sourceIP || !formData.destinationIP || !formData.portRange) {
-      setError("Lütfen tüm zorunlu alanları doldurun.");
+    if (
+      !ipRegex.test(formData.sourceIP) ||
+      !ipRegex.test(formData.destinationIP)
+    ) {
+      setError("Geçerli bir IP adresi girin. CIDR desteklenmektedir.");
       return;
     }
 
@@ -200,7 +203,10 @@ const TrafficRules = () => {
         {pendingRules.length > 0 ? (
           <ul className="list-group">
             {pendingRules.map((rule, index) => (
-              <li key={index} className="list-group-item d-flex justify-content-between">
+              <li
+                key={index}
+                className="list-group-item d-flex justify-content-between"
+              >
                 <span>
                   {rule.sourceIP} → {rule.destinationIP} ({rule.protocol},{" "}
                   {rule.portRange}) -{" "}
@@ -242,9 +248,8 @@ const TrafficRules = () => {
                 className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {rule.src_ip} → {rule.dest_ip} ({rule.proto},{" "}
-                  {rule.dest_port}) -{" "}
-                  {rule.target === "ACCEPT" ? "İzin Ver" : "Engelle"} [
+                  {rule.src_ip} → {rule.dest_ip} ({rule.proto}, {rule.dest_port}
+                  ) - {rule.target === "ACCEPT" ? "İzin Ver" : "Engelle"} [
                   {rule.dest}]
                 </span>
                 <button

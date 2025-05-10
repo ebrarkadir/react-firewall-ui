@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendFirewallRules, getFirewallRules, deleteFirewallRule } from "../api";
+import {
+  sendFirewallRules,
+  getFirewallRules,
+  deleteFirewallRule,
+} from "../api";
 
 const TrafficRules = () => {
   const [pendingRules, setPendingRules] = useState([]);
@@ -34,14 +38,18 @@ const TrafficRules = () => {
   };
 
   const handleAddRule = () => {
-    const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    const ipRegex =
+      /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 
     if (!formData.sourceIP || !formData.destinationIP || !formData.portRange) {
       setError("Lütfen tüm zorunlu alanları doldurun.");
       return;
     }
 
-    if (!ipRegex.test(formData.sourceIP) || !ipRegex.test(formData.destinationIP)) {
+    if (
+      !ipRegex.test(formData.sourceIP) ||
+      !ipRegex.test(formData.destinationIP)
+    ) {
       setError("Geçerli bir IP adresi girin.");
       return;
     }
@@ -65,7 +73,9 @@ const TrafficRules = () => {
   const handleDeleteSentRule = async (uciKey) => {
     try {
       await deleteFirewallRule(uciKey);
-      await fetchExistingRules();
+      setTimeout(() => {
+        fetchExistingRules(); // Yeniden listele
+      }, 1500);
       alert("Kural başarıyla silindi!");
     } catch (err) {
       alert("Kural silinemedi: " + err.message);
@@ -82,7 +92,9 @@ const TrafficRules = () => {
 
       await sendFirewallRules(normalizedRules);
       setPendingRules([]);
-      await fetchExistingRules();
+      setTimeout(() => {
+        fetchExistingRules(); // Yeni kuralları göster
+      }, 1500);
       alert("Kurallar başarıyla gönderildi!");
     } catch (err) {
       alert("Gönderme hatası: " + err.message);
@@ -100,8 +112,8 @@ const TrafficRules = () => {
           </Accordion.Header>
           <Accordion.Body>
             <p>
-              Eklemek istediğiniz kuralları oluşturun. Ardından 'Firewall'a Gönder'
-              butonuna basarak kuralları OpenWRT cihazına aktarın.
+              Eklemek istediğiniz kuralları oluşturun. Ardından 'Firewall'a
+              Gönder' butonuna basarak kuralları OpenWRT cihazına aktarın.
             </p>
           </Accordion.Body>
         </Accordion.Item>
@@ -189,8 +201,17 @@ const TrafficRules = () => {
           <ul className="list-group">
             {pendingRules.map((rule, index) => (
               <li key={index} className="list-group-item d-flex justify-content-between">
-                <span>{rule.sourceIP} → {rule.destinationIP} ({rule.protocol}, {rule.portRange}) - {rule.action === "allow" ? "İzin Ver" : "Engelle"}</span>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDeletePendingRule(index)}>Sil</button>
+                <span>
+                  {rule.sourceIP} → {rule.destinationIP} ({rule.protocol},{" "}
+                  {rule.portRange}) -{" "}
+                  {rule.action === "allow" ? "İzin Ver" : "Engelle"}
+                </span>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeletePendingRule(index)}
+                >
+                  Sil
+                </button>
               </li>
             ))}
           </ul>
@@ -199,7 +220,11 @@ const TrafficRules = () => {
         )}
         {pendingRules.length > 0 && (
           <div className="d-flex justify-content-end mt-3">
-            <button className="btn btn-success" onClick={handleSubmitToFirewall}>
+            <button
+              className="btn"
+              style={{ backgroundColor: "#D84040", color: "white" }}
+              onClick={handleSubmitToFirewall}
+            >
               Firewall'a Gönder
             </button>
           </div>
@@ -212,9 +237,20 @@ const TrafficRules = () => {
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, index) => (
-              <li key={index} className="list-group-item d-flex justify-content-between">
-                <span>{rule.src_ip} → {rule.dest_ip} ({rule.proto}, {rule.dest_port}) - {rule.target === "ACCEPT" ? "İzin Ver" : "Engelle"}</span>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDeleteSentRule(rule.uciKey)}>
+              <li
+                key={index}
+                className="list-group-item d-flex justify-content-between"
+              >
+                <span>
+                  {rule.src_ip} → {rule.dest_ip} ({rule.proto},{" "}
+                  {rule.dest_port}) -{" "}
+                  {rule.target === "ACCEPT" ? "İzin Ver" : "Engelle"} [
+                  {rule.dest}]
+                </span>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeleteSentRule(rule.uciKey)}
+                >
                   Sil
                 </button>
               </li>

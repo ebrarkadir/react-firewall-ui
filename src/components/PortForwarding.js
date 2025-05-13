@@ -1,32 +1,28 @@
 import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
 import {
-  sendPortForwardingRules,
-  getPortForwardingRules,
-  deletePortForwardingRule,
+  sendPortBlockingRules,
+  getPortBlockingRules,
+  deletePortBlockingRule,
 } from "../api";
 
-const PortForwarding = () => {
+const PortBlocking = () => {
   const [pendingRules, setPendingRules] = useState([]);
   const [rules, setRules] = useState([]);
   const [formData, setFormData] = useState({
-    sourceIP: "",
-    destinationIP: "",
     protocol: "TCP",
-    sourcePort: "",
-    destinationPort: "",
+    portRange: "",
   });
 
-  const [ipError, setIpError] = useState("");
   const [portError, setPortError] = useState("");
   const [requiredError, setRequiredError] = useState("");
 
   const fetchExistingRules = async () => {
     try {
-      const response = await getPortForwardingRules();
+      const response = await getPortBlockingRules();
       setRules(response);
     } catch (err) {
-      console.error("Port yönlendirme kuralları alınamadı:", err.message);
+      console.error("Port engelleme kuralları alınamadı:", err.message);
     }
   };
 
@@ -37,21 +33,13 @@ const PortForwarding = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    if (["sourceIP", "destinationIP"].includes(name)) {
-      const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$|^0\.0\.0\.0\/0$/;
-      if (!ipRegex.test(value) && value !== "") {
-        setIpError(
-          `${name === "destinationIP" ? "Hedef" : "Kaynak"} IP formatı hatalı!`
-        );
-      } else {
-        setIpError("");
-      }
-    }
-
-    if (["sourcePort", "destinationPort"].includes(name)) {
-      const portRegex = /^[0-9]{1,5}$/;
-      if (!portRegex.test(value) || parseInt(value) > 65535) {
-        setPortError("Port 0-65535 arasında olmalı.");
+    if (name === "portRange") {
+      const portRangeRegex = /^([0-9]{1,5})(-([0-9]{1,5}))?$/;
+      if (
+        !portRangeRegex.test(value) ||
+        value.split("-").some((p) => parseInt(p) > 65535)
+      ) {
+        setPortError("Port numarası 0-65535 arasında olmalıdır.");
       } else {
         setPortError("");
       }
@@ -61,53 +49,42 @@ const PortForwarding = () => {
   };
 
   const handleAddRule = () => {
-    if (
-      !formData.destinationIP ||
-      !formData.sourcePort ||
-      !formData.destinationPort
-    ) {
-      setRequiredError("Tüm zorunlu alanları doldurun.");
+    if (!formData.portRange) {
+      setRequiredError("Lütfen port aralığını girin.");
       return;
     }
 
-    if (ipError || portError) {
-      alert("Hatalı alanlar var!");
+    if (portError) {
+      alert("Lütfen formdaki hataları düzeltin.");
       return;
     }
 
-    setPendingRules([...pendingRules, formData]);
-    setFormData({
-      sourceIP: "",
-      destinationIP: "",
-      protocol: "TCP",
-      sourcePort: "",
-      destinationPort: "",
-    });
     setRequiredError("");
+    setPendingRules([...pendingRules, formData]);
+    setFormData({ protocol: "TCP", portRange: "" });
   };
 
   const handleDeletePendingRule = (index) => {
     setPendingRules(pendingRules.filter((_, i) => i !== index));
   };
 
-  const handleSubmitToOpenWRT = async () => {
-    try {
-      await sendPortForwardingRules(pendingRules);
-      setPendingRules([]);
-      setTimeout(fetchExistingRules, 1000); // ✅ Güncelleme
-      alert("Port yönlendirme kuralları gönderildi!");
-    } catch (error) {
-      alert("Gönderme hatası: " + error.message);
-    }
-  };
-  
   const handleDeleteSentRule = async (uciKey) => {
     try {
-      await deletePortForwardingRule(uciKey);
-      setTimeout(fetchExistingRules, 1000); // ✅ Güncelleme
-      alert("Kural silindi!");
+      await deletePortBlockingRule(uciKey);
+      setTimeout(fetchExistingRules, 1000);
     } catch (err) {
       alert("Silme hatası: " + err.message);
+    }
+  };
+
+  const handleSubmitToOpenWRT = async () => {
+    try {
+      await sendPortBlockingRules(pendingRules);
+      setPendingRules([]);
+      setTimeout(fetchExistingRules, 1000);
+      alert("Port engelleme kuralları başarıyla gönderildi!");
+    } catch (error) {
+      alert("Kurallar gönderilirken hata oluştu: " + error.message);
     }
   };
 
@@ -117,46 +94,30 @@ const PortForwarding = () => {
         <Accordion.Item eventKey="0">
           <Accordion.Header>
             <span style={{ color: "#D84040", fontWeight: "bold" }}>
-              Port Yönlendirme Kullanımı
+              Port Engelleme Kullanımı
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <p>
-              Dış ağdan gelen trafiği belirtilen cihaza yönlendirmek için
-              kuralları tanımlayın.
-            </p>
+            <ul>
+              <li>
+                <strong>Protokol:</strong> TCP veya UDP üzerinden gelen bağlantıları
+                engellemek için kullanılır.
+              </li>
+              <li>
+                <strong>Port Aralığı:</strong> Örnek: <code>80</code> veya{" "}
+                <code>1000-2000</code>
+              </li>
+            </ul>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
 
-      <h2 style={{ color: "#D84040" }}>Port Yönlendirme</h2>
+      <h2 style={{ color: "#D84040" }}>Port Engelleme</h2>
 
       {/* FORM */}
       <div className="card p-4 mb-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
-          <div className="col-md-4">
-            <label>Kaynak IP (Opsiyonel)</label>
-            <input
-              type="text"
-              className="form-control"
-              name="sourceIP"
-              value={formData.sourceIP}
-              onChange={handleInputChange}
-              placeholder="192.168.1.10"
-            />
-          </div>
-          <div className="col-md-4">
-            <label>Hedef IP</label>
-            <input
-              type="text"
-              className="form-control"
-              name="destinationIP"
-              value={formData.destinationIP}
-              onChange={handleInputChange}
-              placeholder="192.168.1.20"
-            />
-          </div>
           <div className="col-md-4">
             <label>Protokol</label>
             <select
@@ -170,41 +131,33 @@ const PortForwarding = () => {
             </select>
           </div>
           <div className="col-md-4">
-            <label>Kaynak Port</label>
+            <label>Port Aralığı</label>
             <input
               type="text"
               className="form-control"
-              name="sourcePort"
-              value={formData.sourcePort}
+              name="portRange"
+              value={formData.portRange}
               onChange={handleInputChange}
-              placeholder="80"
+              placeholder="Ör: 443 veya 1000-2000"
             />
-          </div>
-          <div className="col-md-4">
-            <label>Hedef Port</label>
-            <input
-              type="text"
-              className="form-control"
-              name="destinationPort"
-              value={formData.destinationPort}
-              onChange={handleInputChange}
-              placeholder="8080"
-            />
+            {portError && (
+              <small className="text-danger">{portError}</small>
+            )}
           </div>
         </div>
         {requiredError && (
-          <small className="text-danger">{requiredError}</small>
+          <small className="text-danger mt-2">{requiredError}</small>
         )}
         <button
           className="btn mt-3"
           style={{ backgroundColor: "#D84040", color: "white" }}
           onClick={handleAddRule}
         >
-          Kuralı Ekle
+          Engelle
         </button>
       </div>
 
-      {/* PENDING */}
+      {/* BEKLEYEN KURALLAR */}
       <div className="card p-4 shadow-sm mb-4">
         <h5 style={{ color: "#D84040" }}>🚧 Eklenecek Kurallar</h5>
         {pendingRules.length > 0 ? (
@@ -215,8 +168,7 @@ const PortForwarding = () => {
                 className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {rule.sourceIP || "Tüm IP'ler"}:{rule.sourcePort} →{" "}
-                  {rule.destinationIP}:{rule.destinationPort} ({rule.protocol})
+                  {rule.protocol} - Port: {rule.portRange} → Engelle
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
@@ -228,7 +180,7 @@ const PortForwarding = () => {
             ))}
           </ul>
         ) : (
-          <p>Henüz bekleyen kural yok.</p>
+          <p>Bekleyen kural yok.</p>
         )}
         {pendingRules.length > 0 && (
           <div className="d-flex justify-content-end mt-3">
@@ -243,7 +195,7 @@ const PortForwarding = () => {
         )}
       </div>
 
-      {/* EXISTING */}
+      {/* AKTİF KURALLAR */}
       <div className="card p-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>🔥 Eklenen (Aktif) Kurallar</h5>
         {rules.length > 0 ? (
@@ -251,14 +203,11 @@ const PortForwarding = () => {
             {rules.map((rule, i) => (
               <li
                 key={i}
-                className="list-group-item d-flex justify-content-between"
+                className="list-group-item d-flex justify-content-between align-items-center"
               >
                 <span>
-                  {(rule.src_ip || "Tüm IP'ler") +
-                    ":" +
-                    (rule.src_dport || "-")}{" "}
-                  → {rule.dest_ip}:{rule.dest_port} ({rule.proto}) [
-                  {rule.name.includes("wan") ? "WAN" : "LAN"}]
+                  {rule.proto?.toUpperCase()} - Port: {rule.dest_port} →{" "}
+                  {rule.target === "REJECT" ? "Engelle" : "İzin Ver"}
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
@@ -270,11 +219,11 @@ const PortForwarding = () => {
             ))}
           </ul>
         ) : (
-          <p>Firewall'da aktif port yönlendirme kuralı yok.</p>
+          <p>Firewall'da aktif port engelleme kuralı yok.</p>
         )}
       </div>
     </div>
   );
 };
 
-export default PortForwarding;
+export default PortBlocking;

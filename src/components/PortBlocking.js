@@ -103,8 +103,8 @@ const PortBlocking = () => {
           <Accordion.Body>
             <ul>
               <li>
-                <strong>Protokoller:</strong> Belirli bir protokol üzerinden
-                gelen veya giden trafiği engelleyebilirsiniz.
+                <strong>Protokoller:</strong> Belirli bir protokol üzerinden gelen
+                veya giden trafiği engelleyebilirsiniz.
               </li>
               <li>
                 <strong>Port Aralığı:</strong> Engellenecek port numarası veya
@@ -143,7 +143,9 @@ const PortBlocking = () => {
               onChange={handleInputChange}
               placeholder="Ör: 80-100 veya 443"
             />
-            {portError && <small className="text-danger">{portError}</small>}
+            {portError && (
+              <small className="text-danger">{portError}</small>
+            )}
           </div>
         </div>
         {requiredError && (
@@ -207,8 +209,7 @@ const PortBlocking = () => {
                 className="list-group-item d-flex justify-content-between align-items-center"
               >
                 <span>
-                  {rule.proto} Port: {rule.dest_port} - Engelle [
-                  {rule.name.includes("wan") ? "WAN" : "LAN"}]
+                  {rule.proto} Port: {rule.dest_port} - {rule.target === "REJECT" ? "Engelle" : "İzin Ver"}
                 </span>
                 <button
                   className="btn btn-danger btn-sm"

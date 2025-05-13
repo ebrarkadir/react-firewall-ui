@@ -31,12 +31,9 @@ export const getFirewallRules = async () => {
 // ❌ 1. Trafik Yönetimi - DELETE
 export const deleteFirewallRule = async (uciKey) => {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/firewall/rules/${uciKey}`,
-      {
-        method: "DELETE",
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/api/firewall/rules/${uciKey}`, {
+      method: "DELETE",
+    });
     return await response.json();
   } catch (error) {
     console.error("🔥 Firewall DELETE Hatası:", error);
@@ -75,12 +72,9 @@ export const getPortForwardingRules = async () => {
 // ❌ 2. Port Yönlendirme - DELETE
 export const deletePortForwardingRule = async (uciKey) => {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/portforwarding/rules/${uciKey}`,
-      {
-        method: "DELETE",
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/api/portforwarding/rules/${uciKey}`, {
+      method: "DELETE",
+    });
     return await response.json();
   } catch (error) {
     console.error("🔥 Port Forwarding DELETE Hatası:", error);
@@ -117,12 +111,9 @@ export const getPortBlockingRules = async () => {
 
 export const deletePortBlockingRule = async (uciKey) => {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/portblocking/rules/${uciKey}`,
-      {
-        method: "DELETE",
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/api/portblocking/rules/${uciKey}`, {
+      method: "DELETE",
+    });
     return await response.json();
   } catch (error) {
     console.error("🔥 Port Blocking DELETE Hatası:", error);
@@ -190,7 +181,7 @@ export const sendVPNRules = async (rules) => {
   }
 };
 
-// 🔥 8. Zaman Bazlı Kurallar
+// 🔥 8. Zaman Bazlı Kurallar - POST
 export const sendTimeBasedRules = async (rules) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/timebased/rules`, {
@@ -205,7 +196,33 @@ export const sendTimeBasedRules = async (rules) => {
     }
     return JSON.parse(textResponse);
   } catch (error) {
-    console.error("🔥 Time-Based API Hatası:", error);
+    console.error("🔥 Time-Based POST Hatası:", error);
+    throw error;
+  }
+};
+
+// 🔍 8. Zaman Bazlı Kurallar - GET
+export const getTimeBasedRules = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/timebased/rules`, {
+      method: "GET",
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("🔥 Time-Based GET Hatası:", error);
+    throw error;
+  }
+};
+
+// ❌ 8. Zaman Bazlı Kurallar - DELETE
+export const deleteTimeBasedRule = async (uciKey) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/timebased/rules/${uciKey}`, {
+      method: "DELETE",
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("🔥 Time-Based DELETE Hatası:", error);
     throw error;
   }
 };

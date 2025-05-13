@@ -1,8 +1,15 @@
-import React, { useState } from "react";
+// 🔥 FRONTEND - TimeBasedRules.js (React)
+
+import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendTimeBasedRules } from "../api";
+import {
+  sendTimeBasedRules,
+  getTimeBasedRules,
+  deleteTimeBasedRule,
+} from "../api";
 
 const TimeBasedRules = () => {
+  const [pendingRules, setPendingRules] = useState([]);
   const [rules, setRules] = useState([]);
   const [formData, setFormData] = useState({
     startTime: "",
@@ -16,22 +23,35 @@ const TimeBasedRules = () => {
   const [timeError, setTimeError] = useState("");
   const [requiredError, setRequiredError] = useState("");
 
+  const fetchExistingRules = async () => {
+    try {
+      const response = await getTimeBasedRules();
+      setRules(response);
+    } catch (err) {
+      console.error("Kurallar alınamadı:", err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchExistingRules();
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "portRange") {
       const portRegex = /^[0-9]{1,5}(-[0-9]{1,5})?$/;
       if (!portRegex.test(value) || value.split("-").some((p) => parseInt(p) > 65535)) {
-        setPortError("Port numarası 0-65535 arasında olmalıdır. Örnek: 80-100 veya 443");
+        setPortError("Port numarası 0-65535 arasında olmalıdır.");
       } else {
         setPortError("");
       }
     }
 
-    if (name === "startTime" || name === "endTime") {
+    if (["startTime", "endTime"].includes(name)) {
       const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
       if (!timeRegex.test(value)) {
-        setTimeError("Zaman formatı HH:MM şeklinde olmalıdır. Örnek: 08:00");
+        setTimeError("Zaman formatı HH:MM şeklinde olmalı.");
       } else {
         setTimeError("");
       }
@@ -42,17 +62,16 @@ const TimeBasedRules = () => {
 
   const handleAddRule = () => {
     if (!formData.startTime || !formData.endTime || !formData.portRange) {
-      setRequiredError("Lütfen tüm zorunlu alanları doldurun.");
+      setRequiredError("Tüm zorunlu alanları doldurun.");
       return;
     }
 
     if (portError || timeError) {
-      alert("Lütfen formdaki hataları düzeltin.");
+      alert("Formda hata var!");
       return;
     }
 
-    setRequiredError("");
-    setRules([...rules, formData]);
+    setPendingRules([...pendingRules, formData]);
     setFormData({
       startTime: "",
       endTime: "",
@@ -60,19 +79,33 @@ const TimeBasedRules = () => {
       portRange: "",
       action: "allow",
     });
+    setRequiredError("");
   };
 
-  const handleDeleteRule = (index) => {
-    const updatedRules = rules.filter((_, i) => i !== index);
-    setRules(updatedRules);
+  const handleDeletePendingRule = (index) => {
+    setPendingRules(pendingRules.filter((_, i) => i !== index));
+  };
+
+  const handleDeleteSentRule = async (uciKey) => {
+    const cleanedKey = uciKey.match(/@rule\[(\d+)\]/)?.[1];
+    if (!cleanedKey) return alert("Geçersiz UCI anahtarı");
+
+    try {
+      await deleteTimeBasedRule(cleanedKey);
+      await fetchExistingRules();
+    } catch (err) {
+      alert("Silme hatası: " + err.message);
+    }
   };
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      await sendTimeBasedRules(rules);
-      alert("Port-Zaman kuralları başarıyla gönderildi!");
-    } catch (error) {
-      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
+      await sendTimeBasedRules(pendingRules);
+      setPendingRules([]);
+      await fetchExistingRules();
+      alert("Zaman bazlı kurallar gönderildi!");
+    } catch (err) {
+      alert("Gönderme hatası: " + err.message);
     }
   };
 
@@ -82,139 +115,92 @@ const TimeBasedRules = () => {
         <Accordion.Item eventKey="0">
           <Accordion.Header>
             <span style={{ color: "#D84040", fontWeight: "bold" }}>
-              Port-Zaman Kuralları Kullanımı
+              Zaman Bazlı Kuralların Kullanımı
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <ul>
-              <li>
-                <strong>Başlangıç ve Bitiş Saatleri:</strong> Kuralın geçerli olacağı zaman dilimini belirtir. <em>(Örnek: 08:00 - 18:00)</em>
-              </li>
-              <li>
-                <strong>Protokoller:</strong> TCP veya UDP gibi ağ protokollerini seçebilirsiniz.
-              </li>
-              <li>
-                <strong>Port Aralığı:</strong> Hangi portlar için kural uygulanacağını belirtir. <em>(Örnek: 80-100 veya 443)</em>
-              </li>
-              <li>
-                <strong>Kural Türü:</strong> Trafiğe izin verme veya engelleme işlemini belirler.
-              </li>
-            </ul>
+            Belirli saatlerde belirli portlara erişimi kontrol etmek için kurallar tanımlayın.
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
 
-      <h2 style={{ color: "#D84040" }}>Port-Zaman Kurallar</h2>
-      <p>Zaman Bazlı Kurallar, belirli saat aralıklarında ağ trafiğini kontrol etmek için kullanılan kurallardır.</p>
+      <h2 style={{ color: "#D84040" }}>Zaman Bazlı Trafik Kuralları</h2>
 
       <div className="card p-4 mb-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
           <div className="col-md-4">
-            <label>Başlangıç Saati </label>
-            <input
-              type="text"
-              className="form-control"
-              name="startTime"
-              value={formData.startTime}
-              onChange={handleInputChange}
-              placeholder="Ör: 08:00"
-            />
-            {timeError && <small className="text-danger">{timeError}</small>}
+            <label>Başlangıç Saati</label>
+            <input type="text" className="form-control" name="startTime" value={formData.startTime} onChange={handleInputChange} placeholder="08:00" />
           </div>
           <div className="col-md-4">
             <label>Bitiş Saati</label>
-            <input
-              type="text"
-              className="form-control"
-              name="endTime"
-              value={formData.endTime}
-              onChange={handleInputChange}
-              placeholder="Ör: 18:00"
-            />
-            {timeError && <small className="text-danger">{timeError}</small>}
+            <input type="text" className="form-control" name="endTime" value={formData.endTime} onChange={handleInputChange} placeholder="18:00" />
           </div>
           <div className="col-md-4">
             <label>Protokol</label>
-            <select
-              className="form-select"
-              name="protocol"
-              value={formData.protocol}
-              onChange={handleInputChange}
-            >
+            <select className="form-select" name="protocol" value={formData.protocol} onChange={handleInputChange}>
               <option value="TCP">TCP</option>
               <option value="UDP">UDP</option>
             </select>
           </div>
           <div className="col-md-4">
             <label>Port Aralığı</label>
-            <input
-              type="text"
-              className="form-control"
-              name="portRange"
-              value={formData.portRange}
-              onChange={handleInputChange}
-              placeholder="Ör: 80-100 veya 443"
-            />
-            {portError && <small className="text-danger">{portError}</small>}
+            <input type="text" className="form-control" name="portRange" value={formData.portRange} onChange={handleInputChange} placeholder="80-100" />
           </div>
           <div className="col-md-4">
-            <label>Kural Türü </label>
-            <select
-              className="form-select"
-              name="action"
-              value={formData.action}
-              onChange={handleInputChange}
-            >
+            <label>Kural Türü</label>
+            <select className="form-select" name="action" value={formData.action} onChange={handleInputChange}>
               <option value="allow">İzin Ver</option>
               <option value="deny">Engelle</option>
             </select>
           </div>
         </div>
-        {requiredError && <small className="text-danger mt-2">{requiredError}</small>}
-        <button
-          className="btn mt-3"
-          style={{ backgroundColor: "#D84040", color: "white" }}
-          onClick={handleAddRule}
-        >
-          Kural Ekle
-        </button>
+        {(portError || timeError || requiredError) && (
+          <small className="text-danger mt-2">{portError || timeError || requiredError}</small>
+        )}
+        <button className="btn mt-3" style={{ backgroundColor: "#D84040", color: "white" }} onClick={handleAddRule}>Kuralı Ekle</button>
       </div>
 
-      <div className="card p-4 shadow-sm">
-        <h5 style={{ color: "#D84040" }}>Eklenen Kurallar</h5>
-        {rules.length > 0 ? (
+      <div className="card p-4 shadow-sm mb-4">
+        <h5 style={{ color: "#D84040" }}>🚧 Eklenecek Kurallar</h5>
+        {pendingRules.length > 0 ? (
           <ul className="list-group">
-            {rules.map((rule, index) => (
-              <li
-                key={index}
-                className="list-group-item d-flex justify-content-between align-items-center"
-              >
+            {pendingRules.map((rule, index) => (
+              <li key={index} className="list-group-item d-flex justify-content-between">
                 <span>
                   {rule.startTime} - {rule.endTime}, {rule.protocol} Port: {rule.portRange} - {rule.action === "allow" ? "İzin Ver" : "Engelle"}
                 </span>
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleDeleteRule(index)}
-                >
-                  Sil
-                </button>
+                <button className="btn btn-danger btn-sm" onClick={() => handleDeletePendingRule(index)}>Sil</button>
               </li>
             ))}
           </ul>
         ) : (
-          <p>Henüz bir kural eklenmedi.</p>
+          <p>Henüz bekleyen kural yok.</p>
+        )}
+        {pendingRules.length > 0 && (
+          <div className="d-flex justify-content-end mt-3">
+            <button className="btn" style={{ backgroundColor: "#D84040", color: "white" }} onClick={handleSubmitToOpenWRT}>Firewall'a Gönder</button>
+          </div>
         )}
       </div>
 
-      <div className="d-flex justify-content-end mt-4">
-        <button
-          className="btn"
-          style={{ backgroundColor: "#D84040", color: "white" }}
-          onClick={handleSubmitToOpenWRT}
-        >
-          Firewall'a Gönder
-        </button>
+      <div className="card p-4 shadow-sm">
+        <h5 style={{ color: "#D84040" }}>🔥 Eklenen (Aktif) Kurallar</h5>
+        {rules.length > 0 ? (
+          <ul className="list-group">
+            {rules.map((rule, i) => (
+              <li key={i} className="list-group-item d-flex justify-content-between">
+                <span>
+                  {rule.start_time} - {rule.stop_time}, {rule.proto} Port: {rule.dest_port} - {rule.target === "ACCEPT" ? "İzin Ver" : "Engelle"} [{rule.name?.includes("wan") ? "WAN" : "LAN"}]
+                </span>
+                <button className="btn btn-danger btn-sm" onClick={() => handleDeleteSentRule(rule.uciKey || rule['.name'])}>Sil</button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Firewall'da aktif zaman bazlı kural yok.</p>
+        )}
       </div>
     </div>
   );

@@ -94,20 +94,25 @@ const PortForwarding = () => {
     try {
       await sendPortForwardingRules(pendingRules);
       setPendingRules([]);
-      setTimeout(fetchExistingRules, 1000); // ✅ Güncelleme
+      setTimeout(fetchExistingRules, 1000);
       alert("Port yönlendirme kuralları gönderildi!");
     } catch (error) {
       alert("Gönderme hatası: " + error.message);
     }
   };
-  
+
   const handleDeleteSentRule = async (uciKey) => {
     try {
-      await deletePortForwardingRule(uciKey);
-      setTimeout(fetchExistingRules, 1000); // ✅ Güncelleme
-      alert("Kural silindi!");
-    } catch (err) {
-      alert("Silme hatası: " + err.message);
+      const response = await deletePortForwardingRule(uciKey);
+      if (response.success) {
+        alert("Kural silindi!");
+        fetchExistingRules();
+      } else {
+        alert("Silinemedi.");
+      }
+    } catch (error) {
+      console.error("Silme hatası:", error);
+      alert("Silme hatası: " + error.message);
     }
   };
 
@@ -215,8 +220,7 @@ const PortForwarding = () => {
                 className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {rule.sourceIP || "Tüm IP'ler"}:{rule.sourcePort} →{" "}
-                  {rule.destinationIP}:{rule.destinationPort} ({rule.protocol})
+                  {rule.sourceIP || "Tüm IP'ler"}:{rule.sourcePort} → {rule.destinationIP}:{rule.destinationPort} ({rule.protocol})
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
@@ -254,11 +258,7 @@ const PortForwarding = () => {
                 className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {(rule.src_ip || "Tüm IP'ler") +
-                    ":" +
-                    (rule.src_dport || "-")}{" "}
-                  → {rule.dest_ip}:{rule.dest_port} ({rule.proto}) [
-                  {rule.name.includes("wan") ? "WAN" : "LAN"}]
+                  {(rule.src_ip || "Tüm IP'ler") + ":" + (rule.src_dport || "-")} → {rule.dest_ip}:{rule.dest_port} ({rule.proto}) [{rule.name.includes("wan") ? "WAN" : "LAN"}]
                 </span>
                 <button
                   className="btn btn-danger btn-sm"

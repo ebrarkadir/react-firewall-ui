@@ -76,7 +76,7 @@ export const getPortForwardingRules = async () => {
 export const deletePortForwardingRule = async (uciKey) => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/api/portblocking/${encodeURIComponent(uciKey)}`,
+      `${API_BASE_URL}/api/portforwarding/rules/${encodeURIComponent(uciKey)}`,
       {
         method: "DELETE",
       }

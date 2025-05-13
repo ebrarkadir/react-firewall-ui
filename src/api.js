@@ -31,9 +31,12 @@ export const getFirewallRules = async () => {
 // ❌ 1. Trafik Yönetimi - DELETE
 export const deleteFirewallRule = async (uciKey) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/firewall/rules/${uciKey}`, {
-      method: "DELETE",
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/firewall/rules/${uciKey}`,
+      {
+        method: "DELETE",
+      }
+    );
     return await response.json();
   } catch (error) {
     console.error("🔥 Firewall DELETE Hatası:", error);
@@ -72,9 +75,12 @@ export const getPortForwardingRules = async () => {
 // ❌ 2. Port Yönlendirme - DELETE
 export const deletePortForwardingRule = async (uciKey) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/portblocking/${encodeURIComponent(uciKey)}`, {
-      method: "DELETE",
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/portblocking/${encodeURIComponent(uciKey)}`,
+      {
+        method: "DELETE",
+      }
+    );
     return await response.json();
   } catch (error) {
     console.error("🔥 Port Forwarding DELETE Hatası:", error);
@@ -83,46 +89,30 @@ export const deletePortForwardingRule = async (uciKey) => {
 };
 
 // 🔥 3. Port Engelleme
-export const sendPortBlockingRules = async (rules) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/portblocking/rules`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rules }),
-    });
-    return await response.json();
-  } catch (error) {
-    console.error("🔥 Port Blocking API Hatası:", error);
-    throw error;
-  }
-};
-
+// 🔍 Port Engelleme GET
 export const getPortBlockingRules = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/portblocking/rules`, {
-      method: "GET",
-    });
-    return await response.json();
-  } catch (error) {
-    console.error("🔥 Port Blocking GET Hatası:", error);
-    throw error;
-  }
+  const response = await fetch(`${API_BASE_URL}/api/portblocking/rules`);
+  return await response.json();
 };
 
+// 🔥 Port Engelleme POST
+export const sendPortBlockingRules = async (rules) => {
+  const response = await fetch(`${API_BASE_URL}/api/portblocking/rules`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rules }),
+  });
+  return await response.json();
+};
+
+// ❌ Port Engelleme DELETE
 export const deletePortBlockingRule = async (uciKey) => {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/portblocking/${uciKey}`, {
-        method: "DELETE"
-      }
-    );
-    return await response.json();
-  } catch (error) {
-    console.error("🔥 DELETE Hatası:", error);
-    throw error;
-  }
+  const response = await fetch(
+    `${API_BASE_URL}/api/portblocking/rules/${uciKey}`,
+    { method: "DELETE" }
+  );
+  return await response.json();
 };
-
 // 🔥 4. MAC Adresi Kuralları
 export const sendMACRules = async (rules) => {
   try {
@@ -219,9 +209,12 @@ export const getTimeBasedRules = async () => {
 // ❌ 8. Zaman Bazlı Kurallar - DELETE
 export const deleteTimeBasedRule = async (uciKey) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/timebased/rules/${uciKey}`, {
-      method: "DELETE",
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/timebased/rules/${uciKey}`,
+      {
+        method: "DELETE",
+      }
+    );
     return await response.json();
   } catch (error) {
     console.error("🔥 Time-Based DELETE Hatası:", error);

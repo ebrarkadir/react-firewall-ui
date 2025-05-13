@@ -35,7 +35,9 @@ const PortBlocking = () => {
     if (name === "portRange") {
       const portRegex = /^\d{1,5}(:\d{1,5})?$/;
       if (!portRegex.test(value)) {
-        setPortError("Port aralığı 0-65535 arasında olmalı (örn: 80 veya 1000:2000)");
+        setPortError(
+          "Port aralığı 0-65535 arasında olmalı (örn: 80 veya 1000:2000)"
+        );
       } else {
         setPortError("");
       }
@@ -74,19 +76,18 @@ const PortBlocking = () => {
   };
 
   const handleDeleteSentRule = async (uciKey) => {
-    try {
-      console.log("Silme isteği gönderiliyor:", uciKey);
-      const response = await deletePortBlockingRule(uciKey);
-      console.log("Silme cevabı:", response);
+    console.log("🧨 Silme isteği gönderiliyor:", uciKey); // @rule[3]
 
+    try {
+      const response = await deletePortBlockingRule(uciKey);
       if (response.success) {
-        alert("Kural başarıyla silindi.");
+        alert("Silindi.");
         setTimeout(fetchExistingRules, 500);
       } else {
-        alert("Silme başarısız: " + (response.error || "Bilinmeyen hata"));
+        alert("Silinemedi.");
       }
     } catch (err) {
-      console.error("Silme hatası:", err);
+      console.error("🔥 Hata:", err);
       alert("Silme hatası: " + err.message);
     }
   };
@@ -101,7 +102,10 @@ const PortBlocking = () => {
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <p>Belirli portlara gelen trafiği engellemek için kuralları tanımlayın.</p>
+            <p>
+              Belirli portlara gelen trafiği engellemek için kuralları
+              tanımlayın.
+            </p>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
@@ -135,7 +139,9 @@ const PortBlocking = () => {
             </select>
           </div>
         </div>
-        {requiredError && <small className="text-danger">{requiredError}</small>}
+        {requiredError && (
+          <small className="text-danger">{requiredError}</small>
+        )}
         {portError && <small className="text-danger">{portError}</small>}
         <button
           className="btn mt-3"
@@ -193,7 +199,8 @@ const PortBlocking = () => {
                 className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {rule.proto.toUpperCase()}:{rule.dest_port} [{rule.src.toUpperCase()}]
+                  {rule.proto.toUpperCase()}:{rule.dest_port} [
+                  {rule.src.toUpperCase()}]
                 </span>
                 <button
                   className="btn btn-danger btn-sm"

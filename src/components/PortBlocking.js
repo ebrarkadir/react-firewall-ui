@@ -10,10 +10,9 @@ const PortBlocking = () => {
   const [pendingRules, setPendingRules] = useState([]);
   const [rules, setRules] = useState([]);
   const [formData, setFormData] = useState({
-    protocol: "TCP",
     portRange: "",
+    protocol: "TCP",
   });
-
   const [portError, setPortError] = useState("");
   const [requiredError, setRequiredError] = useState("");
 
@@ -34,14 +33,9 @@ const PortBlocking = () => {
     const { name, value } = e.target;
 
     if (name === "portRange") {
-      const portRangeRegex = /^([0-9]{1,5})(-([0-9]{1,5}))?$/;
-      if (
-        !portRangeRegex.test(value) ||
-        value.split("-").some((p) => parseInt(p) > 65535)
-      ) {
-        setPortError(
-          "Port numarası 0-65535 arasında olmalıdır. Örnek: 80-100 veya 443"
-        );
+      const portRegex = /^\d{1,5}(:\d{1,5})?$/;
+      if (!portRegex.test(value)) {
+        setPortError("Port aralığı 0-65535 arasında olmalı (örn: 80 veya 1000:2000)");
       } else {
         setPortError("");
       }
@@ -52,42 +46,48 @@ const PortBlocking = () => {
 
   const handleAddRule = () => {
     if (!formData.portRange) {
-      setRequiredError("Lütfen port aralığını girin.");
+      setRequiredError("Port aralığı zorunludur.");
       return;
     }
-
     if (portError) {
-      alert("Lütfen formdaki hataları düzeltin.");
+      alert("Hatalı alanlar var!");
       return;
     }
-
-    setRequiredError("");
     setPendingRules([...pendingRules, formData]);
-    setFormData({ protocol: "TCP", portRange: "" });
+    setFormData({ portRange: "", protocol: "TCP" });
+    setRequiredError("");
   };
 
   const handleDeletePendingRule = (index) => {
-    const updated = pendingRules.filter((_, i) => i !== index);
-    setPendingRules(updated);
-  };
-
-  const handleDeleteSentRule = async (uciKey) => {
-    try {
-      await deletePortBlockingRule(uciKey);
-      setTimeout(fetchExistingRules, 1500); // 🔁 Güncelle
-    } catch (err) {
-      alert("Silme hatası: " + err.message);
-    }
+    setPendingRules(pendingRules.filter((_, i) => i !== index));
   };
 
   const handleSubmitToOpenWRT = async () => {
     try {
       await sendPortBlockingRules(pendingRules);
       setPendingRules([]);
-      setTimeout(fetchExistingRules, 1500); // 🔁 Güncelleme gecikmeli
-      alert("Port engelleme kuralları başarıyla gönderildi!");
+      setTimeout(fetchExistingRules, 1000);
+      alert("Port engelleme kuralları gönderildi!");
     } catch (error) {
-      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
+      alert("Gönderme hatası: " + error.message);
+    }
+  };
+
+  const handleDeleteSentRule = async (uciKey) => {
+    try {
+      console.log("Silme isteği gönderiliyor:", uciKey);
+      const response = await deletePortBlockingRule(uciKey);
+      console.log("Silme cevabı:", response);
+
+      if (response.success) {
+        alert("Kural başarıyla silindi.");
+        setTimeout(fetchExistingRules, 500);
+      } else {
+        alert("Silme başarısız: " + (response.error || "Bilinmeyen hata"));
+      }
+    } catch (err) {
+      console.error("Silme hatası:", err);
+      alert("Silme hatası: " + err.message);
     }
   };
 
@@ -101,27 +101,28 @@ const PortBlocking = () => {
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <ul>
-              <li>
-                <strong>Protokoller:</strong> Belirli bir protokol üzerinden gelen
-                veya giden trafiği engelleyebilirsiniz.
-              </li>
-              <li>
-                <strong>Port Aralığı:</strong> Engellenecek port numarası veya
-                aralığı. <em>Örnek: 80-100 veya 443</em>
-              </li>
-            </ul>
+            <p>Belirli portlara gelen trafiği engellemek için kuralları tanımlayın.</p>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
 
       <h2 style={{ color: "#D84040" }}>Port Engelleme</h2>
 
-      {/* FORM */}
       <div className="card p-4 mb-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
-          <div className="col-md-4">
+          <div className="col-md-6">
+            <label>Port Aralığı</label>
+            <input
+              type="text"
+              className="form-control"
+              name="portRange"
+              value={formData.portRange}
+              onChange={handleInputChange}
+              placeholder="80 veya 1000:2000"
+            />
+          </div>
+          <div className="col-md-6">
             <label>Protokol</label>
             <select
               className="form-select"
@@ -133,34 +134,18 @@ const PortBlocking = () => {
               <option value="UDP">UDP</option>
             </select>
           </div>
-          <div className="col-md-4">
-            <label>Port Aralığı</label>
-            <input
-              type="text"
-              className="form-control"
-              name="portRange"
-              value={formData.portRange}
-              onChange={handleInputChange}
-              placeholder="Ör: 80-100 veya 443"
-            />
-            {portError && (
-              <small className="text-danger">{portError}</small>
-            )}
-          </div>
         </div>
-        {requiredError && (
-          <small className="text-danger mt-2">{requiredError}</small>
-        )}
+        {requiredError && <small className="text-danger">{requiredError}</small>}
+        {portError && <small className="text-danger">{portError}</small>}
         <button
           className="btn mt-3"
           style={{ backgroundColor: "#D84040", color: "white" }}
           onClick={handleAddRule}
         >
-          Engelle
+          Kuralı Ekle
         </button>
       </div>
 
-      {/* BEKLEYENLER */}
       <div className="card p-4 shadow-sm mb-4">
         <h5 style={{ color: "#D84040" }}>🚧 Eklenecek Kurallar</h5>
         {pendingRules.length > 0 ? (
@@ -171,7 +156,7 @@ const PortBlocking = () => {
                 className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {rule.protocol} Port: {rule.portRange} - Engelle
+                  {rule.protocol}:{rule.portRange}
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
@@ -198,18 +183,17 @@ const PortBlocking = () => {
         )}
       </div>
 
-      {/* AKTİF KURALLAR */}
       <div className="card p-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>🔥 Eklenen (Aktif) Kurallar</h5>
         {rules.length > 0 ? (
           <ul className="list-group">
-            {rules.map((rule, index) => (
+            {rules.map((rule, i) => (
               <li
-                key={index}
-                className="list-group-item d-flex justify-content-between align-items-center"
+                key={i}
+                className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {rule.proto} Port: {rule.dest_port} - {rule.target === "REJECT" ? "Engelle" : "İzin Ver"}
+                  {rule.proto.toUpperCase()}:{rule.dest_port} [{rule.src.toUpperCase()}]
                 </span>
                 <button
                   className="btn btn-danger btn-sm"

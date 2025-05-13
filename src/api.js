@@ -72,7 +72,7 @@ export const getPortForwardingRules = async () => {
 // ❌ 2. Port Yönlendirme - DELETE
 export const deletePortForwardingRule = async (uciKey) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/portforwarding/rules/${uciKey}`, {
+    const response = await fetch(`${API_BASE_URL}/api/portblocking/${encodeURIComponent(uciKey)}`, {
       method: "DELETE",
     });
     return await response.json();
@@ -111,12 +111,14 @@ export const getPortBlockingRules = async () => {
 
 export const deletePortBlockingRule = async (uciKey) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/portblocking/rules/${uciKey}`, {
-      method: "DELETE",
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/api/portblocking/${uciKey}`, {
+        method: "DELETE"
+      }
+    );
     return await response.json();
   } catch (error) {
-    console.error("🔥 Port Blocking DELETE Hatası:", error);
+    console.error("🔥 DELETE Hatası:", error);
     throw error;
   }
 };

@@ -1,5 +1,3 @@
-// 🔥 FRONTEND - TimeBasedRules.js (React)
-
 import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
 import {
@@ -7,6 +5,8 @@ import {
   getTimeBasedRules,
   deleteTimeBasedRule,
 } from "../api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const TimeBasedRules = () => {
   const [pendingRules, setPendingRules] = useState([]);
@@ -26,7 +26,7 @@ const TimeBasedRules = () => {
   const fetchExistingRules = async () => {
     try {
       const response = await getTimeBasedRules();
-      setRules(response);
+      setRules([...response]); // 👈 React'in yeniden render etmesi için yeni array oluştur
     } catch (err) {
       console.error("Kurallar alınamadı:", err.message);
     }
@@ -67,7 +67,7 @@ const TimeBasedRules = () => {
     }
 
     if (portError || timeError) {
-      alert("Formda hata var!");
+      toast.error("Formda hata var!");
       return;
     }
 
@@ -87,14 +87,16 @@ const TimeBasedRules = () => {
   };
 
   const handleDeleteSentRule = async (uciKey) => {
-    const cleanedKey = uciKey.match(/@rule\[(\d+)\]/)?.[1];
-    if (!cleanedKey) return alert("Geçersiz UCI anahtarı");
-
     try {
-      await deleteTimeBasedRule(cleanedKey);
-      await fetchExistingRules();
+      const response = await deleteTimeBasedRule(uciKey);
+      if (response.success) {
+        toast.success("✅ Kural başarıyla silindi.");
+        setTimeout(() => fetchExistingRules(), 500); // 👈 hafif gecikmeli fetch
+      } else {
+        toast.error("❌ Silinemedi!");
+      }
     } catch (err) {
-      alert("Silme hatası: " + err.message);
+      toast.error("🔥 Silme hatası: " + err.message);
     }
   };
 
@@ -102,15 +104,16 @@ const TimeBasedRules = () => {
     try {
       await sendTimeBasedRules(pendingRules);
       setPendingRules([]);
-      await fetchExistingRules();
-      alert("Zaman bazlı kurallar gönderildi!");
+      setTimeout(() => fetchExistingRules(), 500); // 👈 hafif gecikmeli fetch
+      toast.success("🚀 Zaman bazlı kurallar gönderildi!");
     } catch (err) {
-      alert("Gönderme hatası: " + err.message);
+      toast.error("🔥 Gönderme hatası: " + err.message);
     }
   };
 
   return (
     <div className="container mt-4">
+      <ToastContainer position="bottom-right" autoClose={3000} />
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
@@ -194,7 +197,7 @@ const TimeBasedRules = () => {
                 <span>
                   {rule.start_time} - {rule.stop_time}, {rule.proto} Port: {rule.dest_port} - {rule.target === "ACCEPT" ? "İzin Ver" : "Engelle"} [{rule.name?.includes("wan") ? "WAN" : "LAN"}]
                 </span>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDeleteSentRule(rule.uciKey || rule['.name'])}>Sil</button>
+                <button className="btn btn-danger btn-sm" onClick={() => handleDeleteSentRule(rule.uciKey)}>Sil</button>
               </li>
             ))}
           </ul>

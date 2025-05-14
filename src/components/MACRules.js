@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendMACRules } from "../api";
+import { sendMACRules, getMACRules, deleteMACRule } from "../api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const MACRules = () => {
   const [rules, setRules] = useState([]);
+  const [pendingRules, setPendingRules] = useState([]);
   const [formData, setFormData] = useState({
     macAddress: "",
     action: "allow",
@@ -14,6 +17,19 @@ const MACRules = () => {
   const [macError, setMacError] = useState("");
   const [timeError, setTimeError] = useState("");
   const [requiredError, setRequiredError] = useState("");
+
+  const fetchExistingRules = async () => {
+    try {
+      const response = await getMACRules();
+      setRules(response);
+    } catch (err) {
+      console.error("Kurallar alınamadı:", err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchExistingRules();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -46,12 +62,12 @@ const MACRules = () => {
     }
 
     if (macError || timeError) {
-      alert("Lütfen formdaki hataları düzeltin.");
+      toast.error("Lütfen formdaki hataları düzeltin.");
       return;
     }
 
     setRequiredError("");
-    setRules([...rules, formData]);
+    setPendingRules([...pendingRules, formData]);
     setFormData({
       macAddress: "",
       action: "allow",
@@ -60,22 +76,38 @@ const MACRules = () => {
     });
   };
 
-  const handleDeleteRule = (index) => {
-    const updatedRules = rules.filter((_, i) => i !== index);
-    setRules(updatedRules);
+  const handleDeletePendingRule = (index) => {
+    setPendingRules(pendingRules.filter((_, i) => i !== index));
   };
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      await sendMACRules(rules);
-      alert("MAC adresi bazlı kurallar başarıyla gönderildi!");
+      await sendMACRules(pendingRules);
+      setPendingRules([]);
+      toast.success("🚀 MAC adresi kuralları gönderildi!");
+      setTimeout(() => fetchExistingRules(), 500);
     } catch (error) {
-      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
+      toast.error("🔥 Gönderme hatası: " + error.message);
+    }
+  };
+
+  const handleDeleteSentRule = async (uciKey) => {
+    try {
+      const response = await deleteMACRule(uciKey);
+      if (response.success) {
+        toast.success("✅ Kural silindi");
+        setTimeout(() => fetchExistingRules(), 500);
+      } else {
+        toast.error("❌ Silinemedi");
+      }
+    } catch (error) {
+      toast.error("🔥 Silme hatası: " + error.message);
     }
   };
 
   return (
     <div className="container mt-4">
+      <ToastContainer position="bottom-right" autoClose={3000} />
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
@@ -85,9 +117,18 @@ const MACRules = () => {
           </Accordion.Header>
           <Accordion.Body>
             <ul>
-              <li><strong>MAC Adresi:</strong> Cihazın fiziksel adresi. <em>(Örnek: 00:1A:2B:3C:4D:5E)</em></li>
-              <li><strong>Zaman Bazlı Kurallar:</strong> Belirli saatlerde ağa erişim kontrolü.</li>
-              <li><strong>Kural Türü:</strong> Erişim izni verme veya engelleme işlemleri.</li>
+              <li>
+                <strong>MAC Adresi:</strong> Cihazın fiziksel adresi.{" "}
+                <em>(Örnek: 00:1A:2B:3C:4D:5E)</em>
+              </li>
+              <li>
+                <strong>Zaman Bazlı Kurallar:</strong> Belirli saatlerde ağa
+                erişim kontrolü.
+              </li>
+              <li>
+                <strong>Kural Türü:</strong> Erişim izni verme veya engelleme
+                işlemleri.
+              </li>
             </ul>
           </Accordion.Body>
         </Accordion.Item>
@@ -159,21 +200,23 @@ const MACRules = () => {
         </button>
       </div>
 
-      <div className="card p-4 shadow-sm">
-        <h5 style={{ color: "#D84040" }}>Eklenen Kurallar</h5>
-        {rules.length > 0 ? (
+      <div className="card p-4 shadow-sm mb-4">
+        <h5 style={{ color: "#D84040" }}>🚧 Eklenecek Kurallar</h5>
+        {pendingRules.length > 0 ? (
           <ul className="list-group">
-            {rules.map((rule, index) => (
+            {pendingRules.map((rule, index) => (
               <li
                 key={index}
                 className="list-group-item d-flex justify-content-between align-items-center"
               >
                 <span>
-                  {rule.macAddress}, {rule.startTime || "Tüm Saatler"} - {rule.endTime || "Tüm Saatler"} - {rule.action === "allow" ? "İzin Ver" : "Engelle"}
+                  {rule.macAddress}, {rule.startTime || "Tüm Saatler"} -{" "}
+                  {rule.endTime || "Tüm Saatler"} -{" "}
+                  {rule.action === "allow" ? "İzin Ver" : "Engelle"}
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
-                  onClick={() => handleDeleteRule(index)}
+                  onClick={() => handleDeletePendingRule(index)}
                 >
                   Sil
                 </button>
@@ -181,18 +224,48 @@ const MACRules = () => {
             ))}
           </ul>
         ) : (
-          <p>Henüz bir kural eklenmedi.</p>
+          <p>Henüz bekleyen kural yok.</p>
+        )}
+        {pendingRules.length > 0 && (
+          <div className="d-flex justify-content-end mt-3">
+            <button
+              className="btn"
+              style={{ backgroundColor: "#D84040", color: "white" }}
+              onClick={handleSubmitToOpenWRT}
+            >
+              Firewall'a Gönder
+            </button>
+          </div>
         )}
       </div>
 
-      <div className="d-flex justify-content-end mt-4">
-        <button
-          className="btn"
-          style={{ backgroundColor: "#D84040", color: "white" }}
-          onClick={handleSubmitToOpenWRT}
-        >
-          Firewall'a Gönder
-        </button>
+      <div className="card p-4 shadow-sm">
+        <h5 style={{ color: "#D84040" }}>🔥 Eklenen (Aktif) Kurallar</h5>
+        {rules.length > 0 ? (
+          <ul className="list-group">
+            {rules.map((rule, i) => (
+              <li
+                key={i}
+                className="list-group-item d-flex justify-content-between align-items-center"
+              >
+                <span>
+                  {rule.src_mac}, {rule.start_time || "Tüm Saatler"} -{" "}
+                  {rule.stop_time || "Tüm Saatler"} -{" "}
+                  {rule.target === "ACCEPT" ? "İzin Ver" : "Engelle"} [
+                  {rule.src === "wan" ? "WAN" : "LAN"}]
+                </span>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeleteSentRule(rule.uciKey)}
+                >
+                  Sil
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>OpenWRT üzerinde aktif MAC kuralı yok.</p>
+        )}
       </div>
     </div>
   );

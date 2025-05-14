@@ -128,6 +128,34 @@ export const sendMACRules = async (rules) => {
   }
 };
 
+// 🔍 MAC Kuralları - GET
+export const getMACRules = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/macrouting/rules`, {
+      method: "GET",
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("🔥 MAC Kuralları GET Hatası:", error);
+    throw error;
+  }
+};
+
+// ❌ MAC Kuralları - DELETE
+export const deleteMACRule = async (uciKey) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/macrouting/rules/${uciKey}`,
+      { method: "DELETE" }
+    );
+    return await response.json();
+  } catch (error) {
+    console.error("🔥 MAC Rule DELETE Hatası:", error);
+    throw error;
+  }
+};
+
+
 // 🔥 5. DNS Engelleme
 export const sendDNSBlockingRules = async (rules) => {
   try {

@@ -5,6 +5,8 @@ import {
   getPortBlockingRules,
   deletePortBlockingRule,
 } from "../api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const PortBlocking = () => {
   const [pendingRules, setPendingRules] = useState([]);
@@ -52,7 +54,7 @@ const PortBlocking = () => {
       return;
     }
     if (portError) {
-      alert("Hatalı alanlar var!");
+      toast.error("Hatalı alanlar var!");
       return;
     }
     setPendingRules([...pendingRules, formData]);
@@ -68,32 +70,35 @@ const PortBlocking = () => {
     try {
       await sendPortBlockingRules(pendingRules);
       setPendingRules([]);
-      setTimeout(fetchExistingRules, 1000);
-      alert("Port engelleme kuralları gönderildi!");
+      toast.success("🚀 Port engelleme kuralları gönderildi!");
+      setTimeout(() => {
+        fetchExistingRules();
+      }, 1000);
     } catch (error) {
-      alert("Gönderme hatası: " + error.message);
+      toast.error("🔥 Gönderme hatası: " + error.message);
     }
   };
 
   const handleDeleteSentRule = async (uciKey) => {
-    console.log("🧨 Silme isteği gönderiliyor:", uciKey); // @rule[3]
-
     try {
       const response = await deletePortBlockingRule(uciKey);
       if (response.success) {
-        alert("Silindi.");
-        setTimeout(fetchExistingRules, 500);
+        toast.success("✅ Kural silindi!");
+        setTimeout(() => {
+          fetchExistingRules();
+        }, 1000);
       } else {
-        alert("Silinemedi.");
+        toast.error("❌ Silinemedi.");
       }
     } catch (err) {
       console.error("🔥 Hata:", err);
-      alert("Silme hatası: " + err.message);
+      toast.error("🔥 Silme hatası: " + err.message);
     }
   };
 
   return (
     <div className="container mt-4">
+      <ToastContainer position="bottom-right" autoClose={3000} />
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>

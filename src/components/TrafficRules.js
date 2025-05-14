@@ -5,6 +5,8 @@ import {
   getFirewallRules,
   deleteFirewallRule,
 } from "../api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const TrafficRules = () => {
   const [pendingRules, setPendingRules] = useState([]);
@@ -22,7 +24,10 @@ const TrafficRules = () => {
   const fetchExistingRules = async () => {
     try {
       const response = await getFirewallRules();
-      setRules(response);
+      setRules([]);
+      setTimeout(() => {
+        setRules(response);
+      }, 0);
     } catch (err) {
       console.error("Kurallar alınamadı:", err.message);
     }
@@ -49,14 +54,6 @@ const TrafficRules = () => {
       return;
     }
 
-    if (
-      !ipRegex.test(formData.sourceIP) ||
-      !ipRegex.test(formData.destinationIP)
-    ) {
-      setError("Geçerli bir IP adresi girin.");
-      return;
-    }
-
     setError("");
     setPendingRules([...pendingRules, formData]);
     setFormData({
@@ -75,13 +72,15 @@ const TrafficRules = () => {
 
   const handleDeleteSentRule = async (uciKey) => {
     try {
-      await deleteFirewallRule(uciKey);
-      setTimeout(() => {
-        fetchExistingRules(); // Yeniden listele
-      }, 1500);
-      alert("Kural başarıyla silindi!");
+      const response = await deleteFirewallRule(uciKey);
+      if (response.success) {
+        toast.success("✅ Kural başarıyla silindi.");
+        setTimeout(fetchExistingRules, 100);
+      } else {
+        toast.error("❌ Silinemedi!");
+      }
     } catch (err) {
-      alert("Kural silinemedi: " + err.message);
+      toast.error("🔥 Silme hatası: " + err.message);
     }
   };
 
@@ -95,17 +94,16 @@ const TrafficRules = () => {
 
       await sendFirewallRules(normalizedRules);
       setPendingRules([]);
-      setTimeout(() => {
-        fetchExistingRules(); // Yeni kuralları göster
-      }, 1500);
-      alert("Kurallar başarıyla gönderildi!");
+      toast.success("🚀 Kurallar başarıyla gönderildi!");
+      setTimeout(fetchExistingRules, 100);
     } catch (err) {
-      alert("Gönderme hatası: " + err.message);
+      toast.error("🔥 Gönderme hatası: " + err.message);
     }
   };
 
   return (
     <div className="container mt-4">
+      <ToastContainer position="bottom-right" autoClose={3000} />
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
@@ -208,9 +206,7 @@ const TrafficRules = () => {
                 className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {rule.sourceIP} → {rule.destinationIP} ({rule.protocol},{" "}
-                  {rule.portRange}) -{" "}
-                  {rule.action === "allow" ? "İzin Ver" : "Engelle"}
+                  {rule.sourceIP} → {rule.destinationIP} ({rule.protocol}, {rule.portRange}) - {rule.action === "allow" ? "İzin Ver" : "Engelle"}
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
@@ -248,9 +244,7 @@ const TrafficRules = () => {
                 className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {rule.src_ip} → {rule.dest_ip} ({rule.proto}, {rule.dest_port}
-                  ) - {rule.target === "ACCEPT" ? "İzin Ver" : "Engelle"} [
-                  {rule.dest}]
+                  {rule.src_ip} → {rule.dest_ip} ({rule.proto}, {rule.dest_port}) - {rule.target === "ACCEPT" ? "İzin Ver" : "Engelle"} [{rule.dest}]
                 </span>
                 <button
                   className="btn btn-danger btn-sm"

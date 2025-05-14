@@ -5,6 +5,8 @@ import {
   getPortForwardingRules,
   deletePortForwardingRule,
 } from "../api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const PortForwarding = () => {
   const [pendingRules, setPendingRules] = useState([]);
@@ -24,7 +26,10 @@ const PortForwarding = () => {
   const fetchExistingRules = async () => {
     try {
       const response = await getPortForwardingRules();
-      setRules(response);
+      setRules([]);
+      setTimeout(() => {
+        setRules(response);
+      }, 0);
     } catch (err) {
       console.error("Port yönlendirme kuralları alınamadı:", err.message);
     }
@@ -71,7 +76,7 @@ const PortForwarding = () => {
     }
 
     if (ipError || portError) {
-      alert("Hatalı alanlar var!");
+      toast.error("Hatalı alanlar var!");
       return;
     }
 
@@ -94,10 +99,10 @@ const PortForwarding = () => {
     try {
       await sendPortForwardingRules(pendingRules);
       setPendingRules([]);
-      setTimeout(fetchExistingRules, 1000);
-      alert("Port yönlendirme kuralları gönderildi!");
+      setTimeout(fetchExistingRules, 100);
+      toast.success("🚀 Port yönlendirme kuralları gönderildi!");
     } catch (error) {
-      alert("Gönderme hatası: " + error.message);
+      toast.error("🔥 Gönderme hatası: " + error.message);
     }
   };
 
@@ -105,19 +110,20 @@ const PortForwarding = () => {
     try {
       const response = await deletePortForwardingRule(uciKey);
       if (response.success) {
-        alert("Kural silindi!");
-        fetchExistingRules();
+        toast.success("✅ Kural silindi!");
+        setTimeout(fetchExistingRules, 100);
       } else {
-        alert("Silinemedi.");
+        toast.error("❌ Silinemedi.");
       }
     } catch (error) {
       console.error("Silme hatası:", error);
-      alert("Silme hatası: " + error.message);
+      toast.error("🔥 Silme hatası: " + error.message);
     }
   };
 
   return (
     <div className="container mt-4">
+      <ToastContainer position="bottom-right" autoClose={3000} />
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>

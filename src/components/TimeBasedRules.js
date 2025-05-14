@@ -127,7 +127,7 @@ const TimeBasedRules = () => {
         </Accordion.Item>
       </Accordion>
 
-      <h2 style={{ color: "#D84040" }}>Zaman Bazlı Trafik Kuralları</h2>
+      <h2 style={{ color: "#D84040" }}>Port-Zaman Kuralları</h2>
 
       <div className="card p-4 mb-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>

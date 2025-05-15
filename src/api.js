@@ -155,7 +155,6 @@ export const deleteMACRule = async (uciKey) => {
   }
 };
 
-
 // 🔥 5. DNS Engelleme
 export const sendDNSBlockingRules = async (rules) => {
   try {
@@ -184,6 +183,22 @@ export const sendQoSRules = async (rules) => {
     console.error("🔥 QoS API Hatası:", error);
     throw error;
   }
+};
+
+// 🔍 QoS - GET
+export const getQoSRules = async () => {
+  const response = await fetch(`${API_BASE_URL}/api/qos/rules`, {
+    method: "GET",
+  });
+  return await response.json();
+};
+
+// ❌ QoS - DELETE
+export const deleteQoSRule = async (uciKey) => {
+  const response = await fetch(`${API_BASE_URL}/api/qos/rules/${uciKey}`, {
+    method: "DELETE",
+  });
+  return await response.json();
 };
 
 // 🔥 7. VPN/NAT Kuralları

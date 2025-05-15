@@ -1,8 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendQoSRules } from "../api";
+import {
+  sendQoSRules,
+  getQoSRules,
+  deleteQoSRule,
+} from "../api";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const QoSRules = () => {
+  const [pendingRules, setPendingRules] = useState([]);
   const [rules, setRules] = useState([]);
   const [formData, setFormData] = useState({
     macAddress: "",
@@ -12,6 +19,26 @@ const QoSRules = () => {
 
   const [macError, setMacError] = useState("");
   const [requiredError, setRequiredError] = useState("");
+
+  const fetchExistingRules = async () => {
+    try {
+      const response = await getQoSRules();
+      const formatted = response.map((rule) => ({
+        mark: rule.mark, // Silme işleminde kullanılıyor
+        mac: rule.mac || "-",
+        priority: rule.priority || "-",
+        bandwidth: rule.classId || "-",
+      }));
+      setRules([]);
+      setTimeout(() => setRules(formatted), 0);
+    } catch (err) {
+      console.error("QoS kuralları alınamadı:", err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchExistingRules();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -35,37 +62,53 @@ const QoSRules = () => {
     }
 
     if (macError) {
-      alert("Lütfen formdaki hataları düzeltin.");
+      toast.error("Lütfen formdaki hataları düzeltin.");
       return;
     }
 
     setRequiredError("");
-    setRules([...rules, formData]);
+    setPendingRules([...pendingRules, formData]);
     setFormData({ macAddress: "", priority: "low", bandwidthLimit: "" });
   };
 
-  const handleDeleteRule = (index) => {
-    const updatedRules = rules.filter((_, i) => i !== index);
-    setRules(updatedRules);
+  const handleDeletePendingRule = (index) => {
+    setPendingRules(pendingRules.filter((_, i) => i !== index));
   };
 
   const handleSubmitToOpenWRT = async () => {
     try {
-      const formattedRules = rules.map((rule) => ({
+      const formattedRules = pendingRules.map((rule) => ({
         macAddress: rule.macAddress.toLowerCase(),
         priority: rule.priority,
         bandwidthLimit: rule.bandwidthLimit || "",
       }));
 
       await sendQoSRules(formattedRules);
-      alert("Trafik önceliklendirme (QoS) kuralları başarıyla gönderildi!");
+      setPendingRules([]);
+      toast.success("🚀 QoS kuralları başarıyla gönderildi!");
+      setTimeout(fetchExistingRules, 1000);
     } catch (error) {
-      alert("Kurallar gönderilirken bir hata oluştu: " + error.message);
+      toast.error("🔥 Gönderme hatası: " + error.message);
+    }
+  };
+
+  const handleDeleteSentRule = async (mark) => {
+    try {
+      const response = await deleteQoSRule(mark);
+      if (response.success) {
+        toast.success("✅ Kural silindi!");
+        setTimeout(fetchExistingRules, 500);
+      } else {
+        toast.error("❌ Silinemedi!");
+      }
+    } catch (err) {
+      toast.error("🔥 Silme hatası: " + err.message);
     }
   };
 
   return (
     <div className="container mt-4">
+      <ToastContainer position="bottom-right" autoClose={3000} />
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
@@ -82,7 +125,7 @@ const QoSRules = () => {
                 <strong>Öncelik Seviyesi:</strong> Trafiğe düşük, orta veya yüksek öncelik verilebilir.
               </li>
               <li>
-                <strong>Bant Genişliği:</strong> Cihazın veri aktarım hızını sınırlandırabilirsiniz. <em>(Örnek: 4 MB/s = 32 Mbit)</em>
+                <strong>Bant Genişliği:</strong> Cihazın veri aktarım hızını sınırlandırabilirsiniz.
               </li>
             </ul>
           </Accordion.Body>
@@ -90,10 +133,8 @@ const QoSRules = () => {
       </Accordion>
 
       <h2 style={{ color: "#D84040" }}>Trafik Önceliklendirme (QoS)</h2>
-      <p>
-        Trafik Önceliklendirme (QoS), ağdaki kritik cihazlara veya uygulamalara öncelik tanıyarak ağ performansını artırır ve kaynakları verimli kullanmayı sağlar.
-      </p>
 
+      {/* FORM */}
       <div className="card p-4 mb-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
@@ -146,34 +187,26 @@ const QoSRules = () => {
           style={{ backgroundColor: "#D84040", color: "white" }}
           onClick={handleAddRule}
         >
-          Kural Ekle
+          Kuralı Ekle
         </button>
       </div>
 
-      <div className="card p-4 shadow-sm">
-        <h5 style={{ color: "#D84040" }}>Eklenen Kurallar</h5>
-        {rules.length > 0 ? (
+      {/* PENDING */}
+      <div className="card p-4 shadow-sm mb-4">
+        <h5 style={{ color: "#D84040" }}>🚧 Eklenecek Kurallar</h5>
+        {pendingRules.length > 0 ? (
           <ul className="list-group">
-            {rules.map((rule, index) => (
+            {pendingRules.map((rule, index) => (
               <li
                 key={index}
                 className="list-group-item d-flex justify-content-between align-items-center"
               >
                 <span>
-                  {rule.macAddress}, Öncelik:{" "}
-                  {rule.priority === "low"
-                    ? "Düşük"
-                    : rule.priority === "medium"
-                    ? "Orta"
-                    : "Yüksek"}
-                  ,{" "}
-                  {rule.bandwidthLimit
-                    ? `Bant: ${parseInt(rule.bandwidthLimit) / 8} KB/s`
-                    : "Bant Sınırı Yok"}
+                  {rule.macAddress}, Öncelik: {rule.priority}, {rule.bandwidthLimit || "Varsayılan Bant"}
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
-                  onClick={() => handleDeleteRule(index)}
+                  onClick={() => handleDeletePendingRule(index)}
                 >
                   Sil
                 </button>
@@ -181,18 +214,46 @@ const QoSRules = () => {
             ))}
           </ul>
         ) : (
-          <p>Henüz bir kural eklenmedi.</p>
+          <p>Henüz eklemeye hazır bir kural yok.</p>
+        )}
+        {pendingRules.length > 0 && (
+          <div className="d-flex justify-content-end mt-3">
+            <button
+              className="btn"
+              style={{ backgroundColor: "#D84040", color: "white" }}
+              onClick={handleSubmitToOpenWRT}
+            >
+              Firewall'a Gönder
+            </button>
+          </div>
         )}
       </div>
 
-      <div className="d-flex justify-content-end mt-4">
-        <button
-          className="btn"
-          style={{ backgroundColor: "#D84040", color: "white" }}
-          onClick={handleSubmitToOpenWRT}
-        >
-          Firewall'a Gönder
-        </button>
+      {/* EXISTING */}
+      <div className="card p-4 shadow-sm">
+        <h5 style={{ color: "#D84040" }}>🔥 Eklenen (Aktif) Kurallar</h5>
+        {rules.length > 0 ? (
+          <ul className="list-group">
+            {rules.map((rule, i) => (
+              <li
+                key={i}
+                className="list-group-item d-flex justify-content-between align-items-center"
+              >
+                <span>
+                  MAC: {rule.mac} | Öncelik: {rule.priority} | Sınıf: {rule.bandwidth}
+                </span>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeleteSentRule(rule.mark)}
+                >
+                  Sil
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Firewall'da aktif QoS kuralı yok.</p>
+        )}
       </div>
     </div>
   );

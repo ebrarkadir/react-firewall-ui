@@ -1,3 +1,5 @@
+// QoSRules.jsx (Güncellenmiş versiyon - 3 sabit öncelik seviyesi)
+
 import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
 import {
@@ -14,7 +16,6 @@ const QoSRules = () => {
   const [formData, setFormData] = useState({
     macAddress: "",
     priority: "low",
-    bandwidthLimit: "",
   });
 
   const [macError, setMacError] = useState("");
@@ -23,12 +24,27 @@ const QoSRules = () => {
   const fetchExistingRules = async () => {
     try {
       const response = await getQoSRules();
+
+      const classIdToBandwidth = {
+        "1:10": "Yüksek Öncelik (40 MB/s)",
+        "1:20": "Orta Öncelik (30 MB/s)",
+        "1:30": "Düşük Öncelik (10 MB/s)",
+      };
+
       const formatted = response.map((rule) => ({
-        mark: rule.mark, // Silme işleminde kullanılıyor
+        uciKey: rule.mark,
         mac: rule.mac || "-",
-        priority: rule.priority || "-",
-        bandwidth: rule.classId || "-",
+        priority:
+          rule.priority === "high"
+            ? "Yüksek Öncelik"
+            : rule.priority === "medium"
+            ? "Orta Öncelik"
+            : rule.priority === "low"
+            ? "Düşük Öncelik"
+            : "-",
+        bandwidth: classIdToBandwidth[rule.classId] || "-",
       }));
+
       setRules([]);
       setTimeout(() => setRules(formatted), 0);
     } catch (err) {
@@ -68,7 +84,7 @@ const QoSRules = () => {
 
     setRequiredError("");
     setPendingRules([...pendingRules, formData]);
-    setFormData({ macAddress: "", priority: "low", bandwidthLimit: "" });
+    setFormData({ macAddress: "", priority: "low" });
   };
 
   const handleDeletePendingRule = (index) => {
@@ -80,7 +96,6 @@ const QoSRules = () => {
       const formattedRules = pendingRules.map((rule) => ({
         macAddress: rule.macAddress.toLowerCase(),
         priority: rule.priority,
-        bandwidthLimit: rule.bandwidthLimit || "",
       }));
 
       await sendQoSRules(formattedRules);
@@ -118,15 +133,8 @@ const QoSRules = () => {
           </Accordion.Header>
           <Accordion.Body>
             <ul>
-              <li>
-                <strong>MAC Adresi:</strong> Trafik önceliği (QoS) tanımlanacak cihazın fiziksel adresi. <em>(Örnek: 00:1A:2B:3C:4D:5E)</em>
-              </li>
-              <li>
-                <strong>Öncelik Seviyesi:</strong> Trafiğe düşük, orta veya yüksek öncelik verilebilir.
-              </li>
-              <li>
-                <strong>Bant Genişliği:</strong> Cihazın veri aktarım hızını sınırlandırabilirsiniz.
-              </li>
+              <li><strong>MAC Adresi:</strong> Trafik önceliği tanımlanacak cihazın adresi.</li>
+              <li><strong>Öncelik Seviyesi:</strong> Yüksek, orta veya düşük hızlı trafik.</li>
             </ul>
           </Accordion.Body>
         </Accordion.Item>
@@ -134,11 +142,10 @@ const QoSRules = () => {
 
       <h2 style={{ color: "#D84040" }}>Trafik Önceliklendirme (QoS)</h2>
 
-      {/* FORM */}
       <div className="card p-4 mb-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
-          <div className="col-md-4">
+          <div className="col-md-6">
             <label>MAC Adresi</label>
             <input
               type="text"
@@ -150,7 +157,7 @@ const QoSRules = () => {
             />
             {macError && <small className="text-danger">{macError}</small>}
           </div>
-          <div className="col-md-4">
+          <div className="col-md-6">
             <label>Öncelik Seviyesi</label>
             <select
               className="form-select"
@@ -158,102 +165,51 @@ const QoSRules = () => {
               value={formData.priority}
               onChange={handleInputChange}
             >
-              <option value="low">Düşük</option>
-              <option value="medium">Orta</option>
-              <option value="high">Yüksek</option>
-            </select>
-          </div>
-          <div className="col-md-4">
-            <label>Bant Genişliği (Opsiyonel)</label>
-            <select
-              className="form-select"
-              name="bandwidthLimit"
-              value={formData.bandwidthLimit}
-              onChange={handleInputChange}
-            >
-              <option value="">Seçiniz (Varsayılan)</option>
-              <option value="512kbit">512 KB/s (≈4 Mbit)</option>
-              <option value="1024kbit">1 MB/s (≈8 Mbit)</option>
-              <option value="2048kbit">2 MB/s (≈16 Mbit)</option>
-              <option value="4096kbit">4 MB/s (≈32 Mbit)</option>
-              <option value="8192kbit">8 MB/s (≈64 Mbit)</option>
-              <option value="10240kbit">10 MB/s (≈80 Mbit)</option>
+              <option value="high">Yüksek Öncelik (40 MB/s)</option>
+              <option value="medium">Orta Öncelik (30 MB/s)</option>
+              <option value="low">Düşük Öncelik (10 MB/s)</option>
             </select>
           </div>
         </div>
         {requiredError && <small className="text-danger mt-2">{requiredError}</small>}
-        <button
-          className="btn mt-3"
-          style={{ backgroundColor: "#D84040", color: "white" }}
-          onClick={handleAddRule}
-        >
+        <button className="btn mt-3" style={{ backgroundColor: "#D84040", color: "white" }} onClick={handleAddRule}>
           Kuralı Ekle
         </button>
       </div>
 
-      {/* PENDING */}
       <div className="card p-4 shadow-sm mb-4">
         <h5 style={{ color: "#D84040" }}>🚧 Eklenecek Kurallar</h5>
         {pendingRules.length > 0 ? (
           <ul className="list-group">
             {pendingRules.map((rule, index) => (
-              <li
-                key={index}
-                className="list-group-item d-flex justify-content-between align-items-center"
-              >
-                <span>
-                  {rule.macAddress}, Öncelik: {rule.priority}, {rule.bandwidthLimit || "Varsayılan Bant"}
-                </span>
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleDeletePendingRule(index)}
-                >
-                  Sil
-                </button>
+              <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                <span>{rule.macAddress}, Öncelik: {rule.priority}</span>
+                <button className="btn btn-danger btn-sm" onClick={() => handleDeletePendingRule(index)}>Sil</button>
               </li>
             ))}
           </ul>
-        ) : (
-          <p>Henüz eklemeye hazır bir kural yok.</p>
-        )}
+        ) : <p>Henüz eklemeye hazır bir kural yok.</p>}
         {pendingRules.length > 0 && (
           <div className="d-flex justify-content-end mt-3">
-            <button
-              className="btn"
-              style={{ backgroundColor: "#D84040", color: "white" }}
-              onClick={handleSubmitToOpenWRT}
-            >
+            <button className="btn" style={{ backgroundColor: "#D84040", color: "white" }} onClick={handleSubmitToOpenWRT}>
               Firewall'a Gönder
             </button>
           </div>
         )}
       </div>
 
-      {/* EXISTING */}
       <div className="card p-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>🔥 Eklenen (Aktif) Kurallar</h5>
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, i) => (
-              <li
-                key={i}
-                className="list-group-item d-flex justify-content-between align-items-center"
-              >
-                <span>
-                  MAC: {rule.mac} | Öncelik: {rule.priority} | Sınıf: {rule.bandwidth}
-                </span>
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleDeleteSentRule(rule.mark)}
-                >
-                  Sil
-                </button>
+              <li key={i} className="list-group-item d-flex justify-content-between align-items-center">
+                <span>MAC: {rule.mac} | Öncelik: {rule.priority} | Sınıf: {rule.bandwidth}</span>
+                <button className="btn btn-danger btn-sm" onClick={() => handleDeleteSentRule(rule.uciKey)}>Sil</button>
               </li>
             ))}
           </ul>
-        ) : (
-          <p>Firewall'da aktif QoS kuralı yok.</p>
-        )}
+        ) : <p>Firewall'da aktif QoS kuralı yok.</p>}
       </div>
     </div>
   );

@@ -182,6 +182,21 @@ export const getDNSBlockingRules = async () => {
   }
 };
 
+export const deleteDNSBlockingRule = async (domain) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/dnsblocking/rules/${encodeURIComponent(domain)}`,
+      {
+        method: "DELETE",
+      }
+    );
+    return await response.json();
+  } catch (error) {
+    console.error("🔥 DNS DELETE Hatası:", error);
+    throw error;
+  }
+};
+
 
 // 🔥 6. QoS Kuralları
 export const sendQoSRules = async (rules) => {

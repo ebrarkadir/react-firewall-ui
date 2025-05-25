@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import { sendDNSBlockingRules, getDNSBlockingRules } from "../api";
+import {
+  sendDNSBlockingRules,
+  getDNSBlockingRules,
+  deleteDNSBlockingRule,
+} from "../api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -59,12 +63,22 @@ const DNSEngines = () => {
     setRules(updatedRules);
   };
 
+  const handleDeleteActiveRule = async (domain) => {
+    try {
+      await deleteDNSBlockingRule(domain);
+      toast.success(`'${domain}' kaldırıldı.`);
+      fetchActiveRules();
+    } catch (error) {
+      toast.error("Silme hatası: " + error.message);
+    }
+  };
+
   const handleSubmitToOpenWRT = async () => {
     try {
       await sendDNSBlockingRules(rules);
       toast.success("DNS kuralları başarıyla gönderildi!");
       setRules([]);
-      fetchActiveRules(); // aktif kural listesini güncelle
+      fetchActiveRules();
     } catch (error) {
       toast.error("Gönderme hatası: " + error.message);
     }
@@ -73,7 +87,6 @@ const DNSEngines = () => {
   return (
     <div className="container mt-4">
       <ToastContainer />
-
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
@@ -154,7 +167,15 @@ const DNSEngines = () => {
         {activeRules.length > 0 ? (
           <ul className="list-group">
             {activeRules.map((rule, index) => (
-              <li key={index} className="list-group-item">{rule}</li>
+              <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                <span>{rule}</span>
+                <button
+                  className="btn btn-outline-danger btn-sm"
+                  onClick={() => handleDeleteActiveRule(rule)}
+                >
+                  Sil
+                </button>
+              </li>
             ))}
           </ul>
         ) : (

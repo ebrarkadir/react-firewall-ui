@@ -1,5 +1,3 @@
-// QoSRules.jsx (Güncellenmiş versiyon - 3 sabit öncelik seviyesi)
-
 import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
 import {
@@ -107,6 +105,7 @@ const QoSRules = () => {
     }
   };
 
+  // ✅ Burada MAC parametresi eklendi
   const handleDeleteSentRule = async (mark, mac) => {
     console.log("Silinecek mark:", mark, "mac:", mac);
     try {
@@ -121,8 +120,6 @@ const QoSRules = () => {
       toast.error("🔥 Silme hatası: " + err.message);
     }
   };
-  
-  
 
   return (
     <div className="container mt-4">
@@ -208,7 +205,7 @@ const QoSRules = () => {
             {rules.map((rule, i) => (
               <li key={i} className="list-group-item d-flex justify-content-between align-items-center">
                 <span>MAC: {rule.mac} | Öncelik: {rule.priority} | Sınıf: {rule.bandwidth}</span>
-                <button className="btn btn-danger btn-sm" onClick={() =>  handleDeleteSentRule(rule.uciKey)}>Sil</button>
+                <button className="btn btn-danger btn-sm" onClick={() =>  handleDeleteSentRule(rule.uciKey, rule.mac)}>Sil</button>
               </li>
             ))}
           </ul>

@@ -34,7 +34,7 @@ const DNSEngines = () => {
     if (name === "domainOrURL") {
       const urlRegex = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/[^\s]*)?$/;
       if (!urlRegex.test(value)) {
-        setUrlError("Geçerli bir URL veya alan adı giriniz. Örnek: google.com veya https://example.com");
+        setUrlError("Geçerli bir URL veya alan adı giriniz. Örnek: google.com");
       } else {
         setUrlError("");
       }
@@ -67,7 +67,9 @@ const DNSEngines = () => {
     try {
       await deleteDNSBlockingRule(domain);
       toast.success(`'${domain}' kaldırıldı.`);
-      fetchActiveRules();
+      setTimeout(() => {
+        fetchActiveRules();
+      }, 500);
     } catch (error) {
       toast.error("Silme hatası: " + error.message);
     }
@@ -78,15 +80,32 @@ const DNSEngines = () => {
       await sendDNSBlockingRules(rules);
       toast.success("DNS kuralları başarıyla gönderildi!");
       setRules([]);
-      fetchActiveRules();
+      setTimeout(() => {
+        fetchActiveRules();
+      }, 500);
     } catch (error) {
       toast.error("Gönderme hatası: " + error.message);
     }
   };
 
+  const deleteButtonStyle = {
+    backgroundColor: "#dc3545",
+    color: "white",
+    border: "none",
+    padding: "4px 12px",
+    fontSize: "14px",
+    transition: "background-color 0.2s",
+    borderRadius: "4px",
+    cursor: "pointer",
+  };
+
+  const deleteButtonHoverStyle = {
+    backgroundColor: "#b52a38",
+  };
+
   return (
     <div className="container mt-4">
-      <ToastContainer />
+      <ToastContainer position="bottom-right" autoClose={3000}/>
       <Accordion defaultActiveKey={null} className="mb-4">
         <Accordion.Item eventKey="0">
           <Accordion.Header>
@@ -104,6 +123,7 @@ const DNSEngines = () => {
         </Accordion.Item>
       </Accordion>
 
+      {/* Kural Ekleme */}
       <div className="card p-4 mb-4 shadow-sm">
         <h5 style={{ color: "#D84040" }}>Kural Ekle</h5>
         <div className="row g-3">
@@ -115,7 +135,7 @@ const DNSEngines = () => {
               name="domainOrURL"
               value={formData.domainOrURL}
               onChange={handleInputChange}
-              placeholder="Ör: google.com veya https://example.com"
+              placeholder="Ör: google.com"
             />
             {urlError && <small className="text-danger">{urlError}</small>}
           </div>
@@ -130,6 +150,7 @@ const DNSEngines = () => {
         </button>
       </div>
 
+      {/* Eklenecek Kurallar */}
       <div className="card p-4 mb-4 shadow-sm">
         <h5 className="mb-3">🛠️ Eklenecek Kurallar</h5>
         {rules.length > 0 ? (
@@ -138,7 +159,9 @@ const DNSEngines = () => {
               <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                 <span>{rule.domainOrURL}</span>
                 <button
-                  className="btn btn-danger btn-sm"
+                  style={deleteButtonStyle}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = deleteButtonHoverStyle.backgroundColor}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = deleteButtonStyle.backgroundColor}
                   onClick={() => handleDeleteRule(index)}
                 >
                   Sil
@@ -162,6 +185,7 @@ const DNSEngines = () => {
         )}
       </div>
 
+      {/* Aktif Kurallar */}
       <div className="card p-4 shadow-sm">
         <h5 className="mb-3" style={{ color: "#D84040" }}>🔥 Eklenen (Aktif) Kurallar</h5>
         {activeRules.length > 0 ? (
@@ -170,7 +194,9 @@ const DNSEngines = () => {
               <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                 <span>{rule}</span>
                 <button
-                  className="btn btn-outline-danger btn-sm"
+                  style={deleteButtonStyle}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = deleteButtonHoverStyle.backgroundColor}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = deleteButtonStyle.backgroundColor}
                   onClick={() => handleDeleteActiveRule(rule)}
                 >
                   Sil

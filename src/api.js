@@ -169,6 +169,19 @@ export const sendDNSBlockingRules = async (rules) => {
     throw error;
   }
 };
+// 🔍 DNS Engelleme Kuralları - GET
+export const getDNSBlockingRules = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/dnsblocking/rules`, {
+      method: "GET",
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("🔥 DNS GET Hatası:", error);
+    throw error;
+  }
+};
+
 
 // 🔥 6. QoS Kuralları
 export const sendQoSRules = async (rules) => {
@@ -194,27 +207,17 @@ export const getQoSRules = async () => {
 };
 
 // ❌ QoS - DELETE
-export const deleteQoSRule = async (uciKey) => {
-  const response = await fetch(`${API_BASE_URL}/api/qos/rules/${uciKey}`, {
+export const deleteQoSRule = async (mark, mac) => {
+  const response = await fetch(`${API_BASE_URL}/api/qos/rules`, {
     method: "DELETE",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ mark, mac }),
   });
   return await response.json();
 };
 
-// 🔥 7. VPN/NAT Kuralları
-export const sendVPNRules = async (rules) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/vpn-nat/rules`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rules }),
-    });
-    return await response.json();
-  } catch (error) {
-    console.error("🔥 VPN/NAT API Hatası:", error);
-    throw error;
-  }
-};
 
 // 🔥 8. Zaman Bazlı Kurallar - POST
 export const sendTimeBasedRules = async (rules) => {

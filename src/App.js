@@ -6,7 +6,6 @@ import TimeBasedRules from "./components/TimeBasedRules";
 import MACRules from "./components/MACRules";
 import DNSEngines from "./components/DNSEngines";
 import QoSRules from "./components/QoSRules";
-import VPNRules from "./components/VPNRules";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
 import Logo from "./assets/logo.png";
@@ -72,7 +71,6 @@ function App() {
       case "macRules": return <MACRules />;
       case "dnsEngines": return <DNSEngines />;
       case "qosRules": return <QoSRules />;
-      case "vpnRules": return <VPNRules />;
       default: return <p>Sayfa bulunamadı!</p>;
     }
   };
@@ -88,7 +86,6 @@ function App() {
 
   const extraFeatureButtons = [
     { key: "qosRules", title: "Trafik Önceliklendirme", text: "Belirli uygulamalar veya cihazlar için internet trafiğine öncelik verin." },
-    { key: "vpnRules", title: "VPN ve NAT Kuralları", text: "VPN bağlantılarını yönetin ve NAT ayarlarını yapılandırın." },
   ];
 
   return (

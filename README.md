@@ -1,70 +1,52 @@
-# Getting Started with Create React App
+[🔧 ShieldWrt API (Backend Sunucusu)](https://github.com/ebrarkadir/openwrt-firewall-api)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# 🖥️ ShieldWrt UI
 
-## Available Scripts
+🇹🇷 **ShieldWrt UI**, OpenWRT tabanlı bir firewall cihazını (örneğin Raspberry Pi) kullanıcı dostu bir web arayüzü ile yönetmenizi sağlar.  
+Bu arayüz sayesinde ağ yöneticileri, teknik bilgiye gerek duymadan kolayca kural ekleyebilir, silebilir ve düzenleyebilir.
 
-In the project directory, you can run:
+🇬🇧 **ShieldWrt UI** is a user-friendly web interface that allows you to manage an OpenWRT-based firewall device (such as a Raspberry Pi).  
+It enables network administrators to add, delete, and edit rules without requiring technical knowledge.
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🚀 Özellikler / Features
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- 🇹🇷 7 farklı ağ kuralını destekler (aşağıda listelenmiştir)/🇬🇧 Supports 7 different network rule types (listed below)
+- Gerçek zamanlı kural yönetimi/Real-time rule management
+- Kullanıcı dostu bildirim sistemi/User-friendly notification system
+- Mobil uyumlu responsive tasarım/Mobile-friendly responsive layout
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## ⚙️ Kullanılan Teknolojiler / Technologies Used
 
-### `npm run build`
+- ⚛️ React
+- 🧾 Bootstrap 5
+- 🛰️ RESTful API (Node.js/Express tabanlı)
+- 📦 React Toastify
+- 🔁 Fetch API
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 📚 Desteklenen Kural Türleri / Supported Rule Types
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+| 🔢 | Kural Türü / Rule Type        | Açıklama (TR)                                                                 | Description (EN)                                                                 |
+|----|-------------------------------|-------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| 1  | DNS Engelleme / DNS Blocking | Belirli alan adlarının çözümünü engeller                                     | Blocks DNS resolution of specified domains                                      |
+| 2  | MAC Kuralları / MAC Rules    | Belirli cihazların erişimini MAC adresine göre sınırlar veya izin verir      | Allows or denies access to specific devices by MAC address                      |
+| 3  | Trafik Önceliği / QoS        | Cihazlara trafik önceliği atar (Yüksek, Orta, Düşük)                          | Assigns bandwidth priority to devices (High, Medium, Low)                       |
+| 4  | Port Yönlendirme / Forwarding| Dış portlardan gelen trafiği iç ağa yönlendirir                               | Forwards external traffic to internal network ports                             |
+| 5  | Port Engelleme / Blocking    | Belirli portlara veya protokollere erişimi kısıtlar                           | Restricts access to certain ports or protocols                                  |
+| 6  | Zaman Bazlı Kurallar         | Belirli saatlerde veya günlerde kural uygulaması sağlar                      | Applies rules based on specific time schedules                                  |
+| 7  | Genel Kurallar / Firewall    | Kaynak/hedef IP, port, protokol gibi gelişmiş ayarlarla trafik kontrolü sağlar| Enables advanced traffic control with protocol, IP and port-based definitions  |
 
-### `npm run eject`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 👤 Geliştirici / Developer
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+**Ebrar Kadir Çetin**  
+📧 [cetinebrarkadir@gmail.com](mailto:cetinebrarkadir@gmail.com)  
+🔗 [GitHub](https://github.com/ebrarkadir)  
+💻 [LinkedIn](https://www.linkedin.com/in/ebrar-kadir-%C3%A7etin-1a728019b)

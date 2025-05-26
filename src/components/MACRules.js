@@ -109,27 +109,37 @@ const MACRules = () => {
     <div className="container mt-4">
       <ToastContainer position="bottom-right" autoClose={3000} />
       <Accordion defaultActiveKey={null} className="mb-4">
-        <Accordion.Item eventKey="0">
+        <Accordion.Item eventKey="4">
           <Accordion.Header>
             <span style={{ color: "#D84040", fontWeight: "bold" }}>
-              MAC Adresi Bazlı Kurallar Kullanımı
+              MAC Bazlı Kurallar Kullanımı
             </span>
           </Accordion.Header>
           <Accordion.Body>
             <ul>
               <li>
-                <strong>MAC Adresi:</strong> Cihazın fiziksel adresi.{" "}
-                <em>(Örnek: 00:1A:2B:3C:4D:5E)</em>
+                <strong>MAC Adresi:</strong> Kurala tabi tutulacak cihazın
+                fiziksel ağ adresi. Örnek: <code>00:1A:2B:3C:4D:5E</code>
               </li>
               <li>
-                <strong>Zaman Bazlı Kurallar:</strong> Belirli saatlerde ağa
-                erişim kontrolü.
+                <strong>Başlangıç Saati:</strong> Kuralın aktif olacağı zamanın
+                başlangıcı (örn: <code>08:00</code>).
               </li>
               <li>
-                <strong>Kural Türü:</strong> Erişim izni verme veya engelleme
-                işlemleri.
+                <strong>Bitiş Saati:</strong> Kuralın sona ereceği zaman (örn:{" "}
+                <code>18:00</code>).
+              </li>
+              <li>
+                <strong>Kural Türü:</strong> Bu cihaz için{" "}
+                <strong>izin ver</strong> ya da <strong>engelle</strong> seçimi
+                yapılır.
               </li>
             </ul>
+            <p>
+              Bu kurallar, belirli saat aralıklarında belirli cihazların ağ
+              erişimini kontrol etmek için kullanılır. Küçük ofisler veya ev
+              kullanıcıları için zaman tabanlı erişim yönetimi sağlar.
+            </p>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>

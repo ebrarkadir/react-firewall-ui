@@ -112,9 +112,31 @@ const TrafficRules = () => {
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <p>
-              Eklemek istediğiniz kuralları oluşturun. Ardından 'Firewall'a
-              Gönder' butonuna basarak kuralları OpenWRT cihazına aktarın.
+            <ul>
+              <li>
+                <strong>MAC Adresi:</strong> Ağ üzerinde kontrol sağlanmak
+                istenen cihazın fiziksel adresidir.{" "}
+                <em>(Örnek: 00:1A:2B:3C:4D:5E)</em>
+              </li>
+              <li>
+                <strong>Başlangıç Saati:</strong> Trafik kuralının aktif olacağı
+                saat. <em>(Opsiyonel – Örnek: 08:00)</em>
+              </li>
+              <li>
+                <strong>Bitiş Saati:</strong> Trafik kuralının devre dışı
+                kalacağı saat. <em>(Opsiyonel – Örnek: 18:00)</em>
+              </li>
+              <li>
+                <strong>Kural Türü:</strong> Belirtilen zaman dilimi boyunca bu
+                cihaza ağ erişimi <strong>izin ver</strong> veya{" "}
+                <strong>engelle</strong> seçenekleriyle tanımlanabilir.
+              </li>
+            </ul>
+            <p className="mt-2">
+              Bu kurallar sayesinde belirli saatlerde cihazların internete
+              erişimi <strong>kısıtlanabilir</strong> veya{" "}
+              <strong>serbest bırakılabilir</strong>. Özellikle ebeveyn kontrolü
+              veya ofis içi zaman bazlı kısıtlama ihtiyaçlarında kullanışlıdır.
             </p>
           </Accordion.Body>
         </Accordion.Item>
@@ -206,7 +228,9 @@ const TrafficRules = () => {
                 className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {rule.sourceIP} → {rule.destinationIP} ({rule.protocol}, {rule.portRange}) - {rule.action === "allow" ? "İzin Ver" : "Engelle"}
+                  {rule.sourceIP} → {rule.destinationIP} ({rule.protocol},{" "}
+                  {rule.portRange}) -{" "}
+                  {rule.action === "allow" ? "İzin Ver" : "Engelle"}
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
@@ -244,7 +268,9 @@ const TrafficRules = () => {
                 className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {rule.src_ip} → {rule.dest_ip} ({rule.proto}, {rule.dest_port}) - {rule.target === "ACCEPT" ? "İzin Ver" : "Engelle"} [{rule.dest}]
+                  {rule.src_ip} → {rule.dest_ip} ({rule.proto}, {rule.dest_port}
+                  ) - {rule.target === "ACCEPT" ? "İzin Ver" : "Engelle"} [
+                  {rule.dest}]
                 </span>
                 <button
                   className="btn btn-danger btn-sm"

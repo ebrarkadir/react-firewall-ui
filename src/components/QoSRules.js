@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Accordion from "react-bootstrap/Accordion";
-import {
-  sendQoSRules,
-  getQoSRules,
-  deleteQoSRule,
-} from "../api";
+import { sendQoSRules, getQoSRules, deleteQoSRule } from "../api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -125,7 +121,7 @@ const QoSRules = () => {
     <div className="container mt-4">
       <ToastContainer position="bottom-right" autoClose={3000} />
       <Accordion defaultActiveKey={null} className="mb-4">
-        <Accordion.Item eventKey="0">
+        <Accordion.Item eventKey="6">
           <Accordion.Header>
             <span style={{ color: "#D84040", fontWeight: "bold" }}>
               Trafik Önceliklendirme (QoS) Kullanımı
@@ -133,9 +129,32 @@ const QoSRules = () => {
           </Accordion.Header>
           <Accordion.Body>
             <ul>
-              <li><strong>MAC Adresi:</strong> Trafik önceliği tanımlanacak cihazın adresi.</li>
-              <li><strong>Öncelik Seviyesi:</strong> Yüksek, orta veya düşük hızlı trafik.</li>
+              <li>
+                <strong>MAC Adresi:</strong> Öncelik verilecek veya
+                sınırlandırılacak cihaza ait benzersiz ağ adresi.
+              </li>
+              <li>
+                <strong>Öncelik Seviyesi:</strong> Cihaz trafiğinin ağda ne
+                kadar öncelikli işleneceğini belirler:
+                <ul>
+                  <li>
+                    Yüksek Öncelik – <strong>40 Mb/s</strong>
+                  </li>
+                  <li>
+                    Orta Öncelik – <strong>30 Mb/s</strong>
+                  </li>
+                  <li>
+                    Düşük Öncelik – <strong>10 Mb/s</strong>
+                  </li>
+                </ul>
+              </li>
             </ul>
+            <p>
+              Bu kurallar, ağa bağlı cihazların trafik hızlarını MAC adresine
+              göre sınıflandırarak ağın daha verimli ve adil kullanılmasını
+              sağlar. Özellikle bant genişliği sınırlı ağlarda performans
+              yönetimi açısından faydalıdır.
+            </p>
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>
@@ -171,8 +190,14 @@ const QoSRules = () => {
             </select>
           </div>
         </div>
-        {requiredError && <small className="text-danger mt-2">{requiredError}</small>}
-        <button className="btn mt-3" style={{ backgroundColor: "#D84040", color: "white" }} onClick={handleAddRule}>
+        {requiredError && (
+          <small className="text-danger mt-2">{requiredError}</small>
+        )}
+        <button
+          className="btn mt-3"
+          style={{ backgroundColor: "#D84040", color: "white" }}
+          onClick={handleAddRule}
+        >
           Kuralı Ekle
         </button>
       </div>
@@ -182,16 +207,32 @@ const QoSRules = () => {
         {pendingRules.length > 0 ? (
           <ul className="list-group">
             {pendingRules.map((rule, index) => (
-              <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                <span>{rule.macAddress}, Öncelik: {rule.priority}</span>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDeletePendingRule(index)}>Sil</button>
+              <li
+                key={index}
+                className="list-group-item d-flex justify-content-between align-items-center"
+              >
+                <span>
+                  {rule.macAddress}, Öncelik: {rule.priority}
+                </span>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeletePendingRule(index)}
+                >
+                  Sil
+                </button>
               </li>
             ))}
           </ul>
-        ) : <p>Henüz eklemeye hazır bir kural yok.</p>}
+        ) : (
+          <p>Henüz eklemeye hazır bir kural yok.</p>
+        )}
         {pendingRules.length > 0 && (
           <div className="d-flex justify-content-end mt-3">
-            <button className="btn" style={{ backgroundColor: "#D84040", color: "white" }} onClick={handleSubmitToOpenWRT}>
+            <button
+              className="btn"
+              style={{ backgroundColor: "#D84040", color: "white" }}
+              onClick={handleSubmitToOpenWRT}
+            >
               Firewall'a Gönder
             </button>
           </div>
@@ -203,13 +244,26 @@ const QoSRules = () => {
         {rules.length > 0 ? (
           <ul className="list-group">
             {rules.map((rule, i) => (
-              <li key={i} className="list-group-item d-flex justify-content-between align-items-center">
-                <span>MAC: {rule.mac} | Öncelik: {rule.priority} | Sınıf: {rule.bandwidth}</span>
-                <button className="btn btn-danger btn-sm" onClick={() =>  handleDeleteSentRule(rule.uciKey, rule.mac)}>Sil</button>
+              <li
+                key={i}
+                className="list-group-item d-flex justify-content-between align-items-center"
+              >
+                <span>
+                  MAC: {rule.mac} | Öncelik: {rule.priority} | Sınıf:{" "}
+                  {rule.bandwidth}
+                </span>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeleteSentRule(rule.uciKey, rule.mac)}
+                >
+                  Sil
+                </button>
               </li>
             ))}
           </ul>
-        ) : <p>Firewall'da aktif QoS kuralı yok.</p>}
+        ) : (
+          <p>Firewall'da aktif QoS kuralı yok.</p>
+        )}
       </div>
     </div>
   );

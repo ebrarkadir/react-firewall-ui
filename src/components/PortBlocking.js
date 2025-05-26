@@ -107,9 +107,21 @@ const PortBlocking = () => {
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <p>
-              Belirli portlara gelen trafiği engellemek için kuralları
-              tanımlayın.
+            <ul>
+              <li>
+                <strong>Port Aralığı:</strong> Engellemek istenen port numarası
+                veya aralığı. (Örnek: <code>80</code> ya da{" "}
+                <code>1000-2000</code>)
+              </li>
+              <li>
+                <strong>Protokol:</strong> Trafiğin türü: <strong>TCP</strong>,{" "}
+                <strong>UDP</strong> veya <strong>ICMP</strong>.
+              </li>
+            </ul>
+            <p className="mt-2">
+              Port engelleme, belirli portlar üzerinden gelen ya da giden
+              bağlantıları <strong>engellemek</strong> için kullanılır. Güvenlik
+              amacıyla istenmeyen bağlantı noktaları filtrelenir.
             </p>
           </Accordion.Body>
         </Accordion.Item>

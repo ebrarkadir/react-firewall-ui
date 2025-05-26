@@ -132,9 +132,35 @@ const PortForwarding = () => {
             </span>
           </Accordion.Header>
           <Accordion.Body>
-            <p>
-              Dış ağdan gelen trafiği belirtilen cihaza yönlendirmek için
-              kuralları tanımlayın.
+            <ul>
+              <li>
+                <strong>Kaynak IP (Opsiyonel):</strong> Gelen bağlantının hangi
+                IP adresinden geldiğini belirtir. Boş bırakılırsa tüm IP’ler
+                için geçerli olur.
+              </li>
+              <li>
+                <strong>Hedef IP:</strong> Trafiğin yönlendirileceği yerel
+                cihazın IP adresi. (Örnek: 192.168.1.100)
+              </li>
+              <li>
+                <strong>Protokol:</strong> Yönlendirilecek trafiğin türü:{" "}
+                <strong>TCP</strong>, <strong>UDP</strong> veya her ikisi.
+              </li>
+              <li>
+                <strong>Kaynak Port:</strong> Dış dünyadan gelen bağlantının
+                hangi porttan geleceği. (Örnek: 8080)
+              </li>
+              <li>
+                <strong>Hedef Port:</strong> Trafiğin iç ağdaki hedef cihaza
+                iletileceği port. (Örnek: 80)
+              </li>
+            </ul>
+            <p className="mt-2">
+              Port yönlendirme, dış ağdan gelen belirli trafik türlerini iç
+              ağdaki belirli cihazlara{" "}
+              <strong>güvenli şekilde yönlendirmek</strong> için kullanılır.
+              Örneğin bir web sunucusu ya da oyun sunucusu çalıştırmak için
+              gereklidir.
             </p>
           </Accordion.Body>
         </Accordion.Item>
@@ -226,7 +252,8 @@ const PortForwarding = () => {
                 className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {rule.sourceIP || "Tüm IP'ler"}:{rule.sourcePort} → {rule.destinationIP}:{rule.destinationPort} ({rule.protocol})
+                  {rule.sourceIP || "Tüm IP'ler"}:{rule.sourcePort} →{" "}
+                  {rule.destinationIP}:{rule.destinationPort} ({rule.protocol})
                 </span>
                 <button
                   className="btn btn-danger btn-sm"
@@ -264,7 +291,11 @@ const PortForwarding = () => {
                 className="list-group-item d-flex justify-content-between"
               >
                 <span>
-                  {(rule.src_ip || "Tüm IP'ler") + ":" + (rule.src_dport || "-")} → {rule.dest_ip}:{rule.dest_port} ({rule.proto}) [{rule.name.includes("wan") ? "WAN" : "LAN"}]
+                  {(rule.src_ip || "Tüm IP'ler") +
+                    ":" +
+                    (rule.src_dport || "-")}{" "}
+                  → {rule.dest_ip}:{rule.dest_port} ({rule.proto}) [
+                  {rule.name.includes("wan") ? "WAN" : "LAN"}]
                 </span>
                 <button
                   className="btn btn-danger btn-sm"

@@ -6,6 +6,7 @@ import TimeBasedRules from "./components/TimeBasedRules";
 import MACRules from "./components/MACRules";
 import DNSEngines from "./components/DNSEngines";
 import QoSRules from "./components/QoSRules";
+import Monitoring from "./components/Monitoring"; 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
 import Logo from "./assets/logo.png";
@@ -22,7 +23,7 @@ function App() {
               Hoş Geldiniz!
             </h2>
             <p className="lead mb-5">
-              <strong style={{color:"#D84040"}}>ShieldWRT</strong>, ağ güvenliğinizi sağlamak için
+              <strong style={{ color: "#D84040" }}>ShieldWRT</strong>, ağ güvenliğinizi sağlamak için
               kullanıcı dostu bir <em>OpenWRT tabanlı firewall</em> yönetim arayüzüdür.
               Güçlü özellikleri keşfedin ve internet trafiğinizi kontrol altına alın!
             </p>
@@ -64,6 +65,7 @@ function App() {
             </div>
           </div>
         );
+
       case "traffic": return <TrafficRules />;
       case "portForwarding": return <PortForwarding />;
       case "portBlocking": return <PortBlocking />;
@@ -71,21 +73,58 @@ function App() {
       case "macRules": return <MACRules />;
       case "dnsEngines": return <DNSEngines />;
       case "qosRules": return <QoSRules />;
+      case "monitoring": return <Monitoring />; // ✅ Ağ İzleme sayfası
       default: return <p>Sayfa bulunamadı!</p>;
     }
   };
 
   const featureButtons = [
-    { key: "traffic", title: "Trafik Yönetimi", text: "LAN'dan WAN'a veya WAN'dan LAN'a giden/gelen trafiği kontrol edin." },
-    { key: "portForwarding", title: "Port Yönlendirme", text: "Belirli portları iç ağınızdaki cihazlara yönlendirin." },
-    { key: "portBlocking", title: "Port Engelleme", text: "İstenmeyen portları kapatarak dış erişimleri engelleyin." },
-    { key: "timeBased", title: "Port-Zaman Kuralları", text: "Belirli saat aralıklarında internet erişim ayarları tanımlayın." },
-    { key: "macRules", title: "MAC Adresi Kuralları", text: "Belirli cihazların erişim izinlerini kontrol edin." },
-    { key: "dnsEngines", title: "URL/DNS Engelleme", text: "Belirli web sitelerine veya alan adlarına erişimi kısıtlayın." },
+    {
+      key: "traffic",
+      title: "Trafik Yönetimi",
+      text: "LAN'dan WAN'a veya WAN'dan LAN'a giden/gelen trafiği kontrol edin.",
+    },
+    {
+      key: "portForwarding",
+      title: "Port Yönlendirme",
+      text: "Belirli portları iç ağınızdaki cihazlara yönlendirin.",
+    },
+    {
+      key: "portBlocking",
+      title: "Port Engelleme",
+      text: "İstenmeyen portları kapatarak dış erişimleri engelleyin.",
+    },
+    {
+      key: "timeBased",
+      title: "Port-Zaman Kuralları",
+      text: "Belirli saat aralıklarında internet erişim ayarları tanımlayın.",
+    },
+    {
+      key: "macRules",
+      title: "MAC Adresi Kuralları",
+      text: "Belirli cihazların erişim izinlerini kontrol edin.",
+    },
+    {
+      key: "dnsEngines",
+      title: "URL/DNS Engelleme",
+      text: "Belirli web sitelerine veya alan adlarına erişimi kısıtlayın.",
+    },
+    {
+      key: "qosRules",
+      title: "Trafik Önceliklendirme",
+      text: "Belirli uygulamalar veya cihazlar için internet trafiğine öncelik verin.",
+    },
+    
+    
   ];
 
   const extraFeatureButtons = [
-    { key: "qosRules", title: "Trafik Önceliklendirme", text: "Belirli uygulamalar veya cihazlar için internet trafiğine öncelik verin." },
+   
+    {
+      key: "monitoring",
+      title: "Ağ İzleme",
+      text: "Kural loglarını grafiklerle takip edin.", // ✅ yeni kart
+    },
   ];
 
   return (
@@ -109,7 +148,11 @@ function App() {
             <button
               key={key}
               className="btn btn-sm"
-              style={{ border: '1px solid #D84040', color: '#D84040', backgroundColor: 'transparent' }}
+              style={{
+                border: '1px solid #D84040',
+                color: '#D84040',
+                backgroundColor: 'transparent',
+              }}
               onClick={() => setActiveCategory(key)}
             >
               {title}

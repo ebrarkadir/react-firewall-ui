@@ -45,24 +45,6 @@ function App() {
                 </div>
               ))}
             </div>
-
-            <div className="row mt-4 justify-content-center g-3">
-              {extraFeatureButtons.map(({ key, title, text }) => (
-                <div
-                  key={key}
-                  className="col-md-5"
-                  onClick={() => setActiveCategory(key)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <div className="card h-100 shadow-sm feature-card">
-                    <div className="card-body">
-                      <h5 className="card-title">{title}</h5>
-                      <p className="card-text">{text}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         );
 
@@ -73,7 +55,7 @@ function App() {
       case "macRules": return <MACRules />;
       case "dnsEngines": return <DNSEngines />;
       case "qosRules": return <QoSRules />;
-      case "monitoring": return <Monitoring />; // ✅ Ağ İzleme sayfası
+      case "monitoring": return <Monitoring />;
       default: return <p>Sayfa bulunamadı!</p>;
     }
   };
@@ -114,16 +96,10 @@ function App() {
       title: "Trafik Önceliklendirme",
       text: "Belirli uygulamalar veya cihazlar için internet trafiğine öncelik verin.",
     },
-    
-    
-  ];
-
-  const extraFeatureButtons = [
-   
     {
       key: "monitoring",
-      title: "Ağ İzleme",
-      text: "Kural loglarını grafiklerle takip edin.", // ✅ yeni kart
+      title: "Log Kayıtları",
+      text: "Kural loglarını grafiklerle takip edin.",
     },
   ];
 
@@ -144,7 +120,7 @@ function App() {
 
       <nav className="bg-light py-3 shadow">
         <div className="container d-flex justify-content-center flex-wrap gap-2">
-          {featureButtons.concat(extraFeatureButtons).map(({ key, title }) => (
+          {featureButtons.map(({ key, title }) => (
             <button
               key={key}
               className="btn btn-sm"

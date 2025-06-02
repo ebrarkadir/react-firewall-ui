@@ -6,7 +6,7 @@ import TimeBasedRules from "./components/TimeBasedRules";
 import MACRules from "./components/MACRules";
 import DNSEngines from "./components/DNSEngines";
 import QoSRules from "./components/QoSRules";
-import Monitoring from "./components/Monitoring"; 
+import Monitoring from "./components/Monitoring";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
 import Logo from "./assets/logo.png";
@@ -17,6 +17,9 @@ function App() {
   const renderContent = () => {
     switch (activeCategory) {
       case "home":
+        const topFeatures = featureButtons.slice(0, 6);
+        const bottomFeatures = featureButtons.slice(6);
+
         return (
           <div className="container mt-4 text-center">
             <h2 className="display-4 fw-bold mb-3" style={{ color: '#4b4b4b' }}>
@@ -28,11 +31,31 @@ function App() {
               Güçlü özellikleri keşfedin ve internet trafiğinizi kontrol altına alın!
             </p>
 
+            {/* Üstteki 6 kart (3x2 görünüm) */}
             <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-              {featureButtons.map(({ key, title, text }) => (
+              {topFeatures.map(({ key, title, text }) => (
                 <div
                   key={key}
                   className="col"
+                  onClick={() => setActiveCategory(key)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <div className="card h-100 shadow-sm feature-card">
+                    <div className="card-body">
+                      <h5 className="card-title">{title}</h5>
+                      <p className="card-text">{text}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Alttaki 2 kart ortalanmış şekilde */}
+            <div className="row justify-content-center mt-4 g-4">
+              {bottomFeatures.map(({ key, title, text }) => (
+                <div
+                  key={key}
+                  className="col-md-5 col-lg-4"
                   onClick={() => setActiveCategory(key)}
                   style={{ cursor: "pointer" }}
                 >
